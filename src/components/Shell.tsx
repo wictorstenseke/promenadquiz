@@ -9,7 +9,7 @@ export function Shell() {
             ✦
           </span>
           <span>
-            Hösttipset
+            Promenadquiz
             <small>Tipspromenad</small>
           </span>
         </Link>

@@ -27,7 +27,7 @@ export function PrintSheets({ walk }: { walk: Walk }) {
               </div>
             ))}
           </div>
-          <div className="print-foot">Hösttipset · tipspromenad</div>
+          <div className="print-foot">Promenadquiz · tipspromenad</div>
         </section>
       ))}
     </div>

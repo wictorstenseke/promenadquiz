@@ -4,22 +4,17 @@ import { Link } from "react-router-dom";
 import { storage } from "../storage";
 import { newWalk } from "../lib/factory";
 import { shortId, uid } from "../lib/id";
-import { PlusIcon, MoreIcon } from "../components/Icons";
+import { PlusIcon, MoreIcon, EnterIcon } from "../components/Icons";
 import { WalkActionsSheet } from "../components/WalkActionsSheet";
+import { JoinSheet } from "../components/JoinSheet";
 import type { Walk } from "../types";
 
 export default function HomePage() {
   const [walks, setWalks] = useState<Walk[] | null>(null);
   const [submissions, setSubmissions] = useState<Record<string, number>>({});
   const [menuFor, setMenuFor] = useState<string | null>(null);
-  const [code, setCode] = useState("");
+  const [joinOpen, setJoinOpen] = useState(false);
   const navigate = useNavigate();
-
-  function join(e: React.FormEvent) {
-    e.preventDefault();
-    const id = parseCode(code);
-    if (id) navigate(`/p/${id}`);
-  }
 
   useEffect(() => {
     storage.listWalks().then(async (list) => {
@@ -79,27 +74,10 @@ export default function HomePage() {
         <button className="btn blaze" onClick={create}>
           <PlusIcon /> Ny promenad
         </button>
+        <button className="btn ghost" onClick={() => setJoinOpen(true)}>
+          <EnterIcon /> Gå med
+        </button>
       </div>
-
-      <form className="join-box" onSubmit={join}>
-        <label htmlFor="join-code">Gå med i en promenad</label>
-        <div className="row">
-          <input
-            id="join-code"
-            type="text"
-            inputMode="text"
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
-            placeholder="Ange kod, t.ex. k4m9px"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-          />
-          <button className="btn" type="submit" disabled={!parseCode(code)}>
-            Gå med
-          </button>
-        </div>
-      </form>
 
       <hr className="divider" />
 
@@ -173,19 +151,14 @@ export default function HomePage() {
           setMenuFor(null);
         }}
       />
+
+      <JoinSheet
+        open={joinOpen}
+        onClose={() => setJoinOpen(false)}
+        onJoin={(id) => navigate(`/p/${id}`)}
+      />
     </main>
   );
-}
-
-/**
- * Pull a 6-char walk code out of whatever the user pasted — a bare code or a
- * full share link like ".../p/k4m9px". Lowercased and stripped of characters
- * outside the id alphabet; returns null when it isn't a valid code.
- */
-function parseCode(raw: string): string | null {
-  const last = raw.trim().split(/[/?#]/).filter(Boolean).pop() ?? "";
-  const cleaned = last.toLowerCase().replace(/[^23456789abcdefghjkmnpqrstuvwxyz]/g, "");
-  return cleaned.length === 6 ? cleaned : null;
 }
 
 /** "Höstrunda" -> "Höstrunda (kopia)", then "(kopia 2)", … avoiding clashes. */

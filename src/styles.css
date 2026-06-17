@@ -551,31 +551,6 @@ textarea {
 .muted {
   color: var(--ink-soft);
 }
-.join-box {
-  margin-top: 1.1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-}
-.join-box label {
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-}
-.join-box .row {
-  gap: 0.6rem;
-  flex-wrap: nowrap;
-}
-.join-box input {
-  flex: 1;
-  min-width: 0;
-}
-.join-box .btn {
-  flex: none;
-  white-space: nowrap;
-}
 .divider {
   height: 1.5px;
   background: repeating-linear-gradient(
