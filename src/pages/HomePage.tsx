@@ -74,7 +74,7 @@ export default function HomePage() {
         <button className="btn blaze" onClick={create}>
           <PlusIcon /> Ny promenad
         </button>
-        <button className="btn ghost" onClick={() => setJoinOpen(true)}>
+        <button className="btn" onClick={() => setJoinOpen(true)}>
           <EnterIcon /> Gå med
         </button>
       </div>

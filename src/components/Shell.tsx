@@ -18,6 +18,11 @@ export function Shell() {
         </Link>
       </header>
       <Outlet />
+      <footer className="footer no-print">
+        <span className="footer-meta">
+          <a href="https://wictorstenseke.se">WictorStenseke.se</a> · © 2026
+        </span>
+      </footer>
     </div>
   );
 }
