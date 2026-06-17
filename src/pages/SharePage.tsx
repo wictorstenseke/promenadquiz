@@ -17,7 +17,8 @@ export default function SharePage() {
 
   if (!walk) return <main className="page muted">Laddar…</main>;
 
-  const url = `${window.location.origin}/p/${walk.id}`;
+  // HashRouter + GitHub Pages base path: link must be origin + base + "#/p/:id".
+  const url = `${window.location.origin}${import.meta.env.BASE_URL}#/p/${walk.id}`;
 
   async function copy() {
     await navigator.clipboard.writeText(url);
@@ -46,15 +47,7 @@ export default function SharePage() {
         className="card ticket"
         style={{ marginTop: "1.6rem", position: "relative" }}
       >
-        <div
-          className="row"
-          style={{
-            gap: "0.7rem",
-            position: "absolute",
-            top: "1rem",
-            right: "1rem",
-          }}
-        >
+        <div className="ticket-actions">
           <Link to={`/walk/${walk.id}/leaderboard`} className="btn ghost sm">
             <TrophyIcon size={16} /> Topplista
           </Link>

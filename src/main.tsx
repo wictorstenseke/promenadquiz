@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { RouterProvider, createHashRouter } from "react-router-dom";
 import "./styles.css";
 import { Shell } from "./components/Shell";
 import HomePage from "./pages/HomePage";
@@ -12,7 +12,7 @@ import ResultPage from "./pages/ResultPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   {
     element: <Shell />,
     children: [
