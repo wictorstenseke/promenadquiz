@@ -22,6 +22,8 @@ export default function PlayPage() {
 
   const [name, setName] = useState("");
   const [started, setStarted] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [checkingName, setCheckingName] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [answers, setAnswers] = useState<Record<string, OptionKey>>({});
   const [tiebreak, setTiebreak] = useState("");
@@ -84,6 +86,33 @@ export default function PlayPage() {
     );
   if (!walk) return <main className="page muted">Laddar…</main>;
 
+  // Reject a name already used on this walk so the leaderboard stays readable.
+  // Soft check: a race could still let two identical names through, acceptable
+  // for the POC. If the check can't run (offline/no backend), don't block play.
+  async function start() {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setNameError(null);
+    setCheckingName(true);
+    try {
+      const board = await storage.getLeaderboard(walk!.id);
+      const taken = board.some(
+        (e) =>
+          e.submission.participantName.trim().toLowerCase() ===
+          trimmed.toLowerCase(),
+      );
+      if (taken) {
+        setNameError("Namnet är redan taget i promenaden. Välj ett annat.");
+        return;
+      }
+      setStarted(true);
+    } catch {
+      setStarted(true);
+    } finally {
+      setCheckingName(false);
+    }
+  }
+
   // --- name gate ---
   if (!started) {
     return (
@@ -109,19 +138,27 @@ export default function PlayPage() {
               type="text"
               value={name}
               autoFocus
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) =>
-                e.key === "Enter" && name.trim() && setStarted(true)
-              }
+              onChange={(e) => {
+                setName(e.target.value);
+                if (nameError) setNameError(null);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && name.trim()) start();
+              }}
             />
+            {nameError && (
+              <p className="field-error" style={{ marginTop: "0.5rem" }}>
+                {nameError}
+              </p>
+            )}
           </div>
           <div className="row" style={{ justifyContent: "flex-end" }}>
             <button
               className="btn blaze"
-              disabled={!name.trim()}
-              onClick={() => setStarted(true)}
+              disabled={!name.trim() || checkingName}
+              onClick={start}
             >
-              Starta promenaden →
+              {checkingName ? "Kontrollerar…" : "Starta promenaden →"}
             </button>
           </div>
         </div>

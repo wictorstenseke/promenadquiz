@@ -1,0 +1,25 @@
+rules_version = '2';
+
+// POC rules: NO accounts. Anyone with a walk id can read it, and — accepted
+// risk for now — anyone can create/overwrite a published walk. Tighten with an
+// owner guard (Firebase Auth + ownerId) before this is used for real.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Published walks: world-readable, world-writable (POC only).
+    match /walks/{walkId} {
+      allow read: if true;
+      allow create, update, delete: if true;
+    }
+
+    // Participant submissions: append-only. Anyone can add their own result
+    // and read the leaderboard; nobody can edit or delete a submitted score.
+    match /submissions/{submissionId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if false;
+    }
+
+    // Everything else is denied by default (no catch-all allow).
+  }
+}

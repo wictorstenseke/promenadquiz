@@ -1343,3 +1343,10 @@ input[type="text"].title-input {
     gap: 3mm;
   }
 }
+
+.field-error {
+  margin: 0;
+  color: var(--blaze-deep);
+  font-size: 0.9rem;
+  font-weight: 600;
+}

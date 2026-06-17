@@ -53,10 +53,36 @@ automatiskt (`.github/workflows/deploy.yml`).
 
 Manuell körning: `gh workflow run deploy.yml`.
 
+## Backend (Firestore)
+
+POC-modell, inga konton:
+
+- **Utkast** sparas bara i `localStorage` på skaparens enhet.
+- **Publicerade** promenader speglas till Firestore → andra enheter kan hämta
+  via id (QR/länk fungerar mellan enheter).
+- **Bidrag & topplista** ligger i Firestore → gemensam topplista. Deltagare
+  anger bara namn; namnet valideras mjukt mot dubbletter per promenad.
+
+Allt detta lever i `HybridStorage` (`src/storage/`). Utan Firebase-config kör
+appen ren `localStorage` — inget kraschar, delning mellan enheter är bara av.
+
+⚠️ Reglerna (`firestore.rules`) är öppna: vem som helst med ett id kan skriva
+över en publicerad promenad. Medveten POC-risk — lägg till ägar-skydd (Firebase
+Auth + `ownerId`) före skarp användning.
+
+### Sätt upp Firebase
+
+1. Skapa ett projekt i [Firebase Console](https://console.firebase.google.com/)
+   och en **Web app**. Aktivera **Firestore** (production mode).
+2. Kopiera webb-konfigen till `.env.local` (se `.env.example`).
+3. Publicera reglerna: `firebase deploy --only firestore:rules`.
+4. För Pages-deploy: lägg samma `VITE_FIREBASE_*` som **repo secrets** (Actions
+   bygger med dem, se `.github/workflows/deploy.yml`).
+
 ## Medvetet utanför nuvarande version
 
-Cross-device-delning & gemensam topplista (kräver Firebase), utslagsfrågans
-avgörandelogik (bara svaret sparas), inloggning, bilder i frågor.
+Utslagsfrågans avgörandelogik (bara svaret sparas), inloggning/ägar-skydd,
+bilder i frågor.
 
 ## Tester
 

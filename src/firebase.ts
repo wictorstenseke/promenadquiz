@@ -1,0 +1,33 @@
+import { initializeApp, type FirebaseApp } from "firebase/app";
+import { getFirestore, type Firestore } from "firebase/firestore";
+
+/**
+ * Firebase config is read from Vite env vars (VITE_FIREBASE_*). These are web
+ * client keys — safe to ship in the bundle; access is governed by Firestore
+ * rules, not by hiding the key.
+ *
+ * When the vars are absent (e.g. local dev with no project, or a fork without
+ * secrets) we leave Firebase uninitialised and the app falls back to a pure
+ * localStorage backend. Nothing crashes; cross-device sharing is simply off.
+ */
+const config = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+};
+
+export const firebaseEnabled = Boolean(config.apiKey && config.projectId);
+
+let app: FirebaseApp | undefined;
+let firestore: Firestore | undefined;
+
+if (firebaseEnabled) {
+  app = initializeApp(config);
+  firestore = getFirestore(app);
+}
+
+/** Firestore instance, or null when no config is present. */
+export const db: Firestore | null = firestore ?? null;
