@@ -1,12 +1,14 @@
-# Hösttipset — Tipspromenad-app (v1)
+# Promenadquiz — Tipspromenad-app
 
 Digital tipspromenad. Admin bygger frågor i 1 · X · 2-format, kör digitalt
 och/eller skriver ut en fråga per A4, och delar via länk + QR. Deltagare svarar
 en fråga i taget. Allt autosparas i localStorage.
 
+**Live:** https://wictorstenseke.github.io/promenadquiz/
+
 ## Stack
 
-Vite + React + TypeScript + React Router.
+Vite + React + TypeScript + React Router (HashRouter).
 
 ## Kom igång
 
@@ -31,13 +33,27 @@ npm test         # vitest
 
 - `/` — admins lista + skapa
 - `/walk/:id/edit` — bygg & publicera (autospar)
+- `/walk/:id/preview` — förhandsgranskning
 - `/walk/:id/share` — länk + QR
-- `/walk/:id/print` — utskriftsvy, en fråga per A4 (`@media print`)
 - `/walk/:id/leaderboard` — topplista
 - `/p/:id` — deltagarvy (en fråga i taget, pilar, autospar)
 - `/p/:id/result/:submissionId` — egen poäng
 
-## Medvetet utanför v1
+Utskrift (en fråga per A4, `@media print`) sker via utskriftsmenyn på
+share-sidan, inte en egen route.
+
+## Deploy
+
+GitHub Pages via GitHub Actions. Varje push till `main` bygger och publicerar
+automatiskt (`.github/workflows/deploy.yml`).
+
+- Vite `base` är satt till `/promenadquiz/` (projektets subpath).
+- HashRouter används så att djuplänkar och delade QR-länkar överlever en
+  kallstart på Pages, som saknar server-rewrites.
+
+Manuell körning: `gh workflow run deploy.yml`.
+
+## Medvetet utanför nuvarande version
 
 Cross-device-delning & gemensam topplista (kräver Firebase), utslagsfrågans
 avgörandelogik (bara svaret sparas), inloggning, bilder i frågor.

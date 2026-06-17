@@ -15,8 +15,9 @@ export function PrintSheets({ walk }: { walk: Walk }) {
     <div className="print-only">
       {sheets.map((q) => (
         <section className="print-sheet" key={q.id}>
-          <div className="print-station">
-            Fråga {q.stationNumber} — {live.title}
+          <div className="print-head">
+            <div className="print-quizname">{live.title}</div>
+            <div className="print-station">Fråga {q.stationNumber}</div>
           </div>
           <div className="print-q">{q.text || "—"}</div>
           <div className="print-opts">

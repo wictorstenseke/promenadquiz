@@ -1207,13 +1207,23 @@ input[type="text"].title-input {
   .print-sheet:last-child {
     page-break-after: auto;
   }
-  .print-station {
-    font-family: var(--mono);
-    font-size: 14pt;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
+  /* Quiz name reads as a subtext above a big, easy-to-spot station number. */
+  .print-head {
     border-bottom: 2px solid #000;
     padding-bottom: 6mm;
+    text-align: center;
+  }
+  .print-quizname {
+    font-family: var(--mono);
+    font-size: 13pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  .print-station {
+    font-family: var(--display);
+    font-size: 64pt;
+    line-height: 1;
+    margin-top: 3mm;
   }
   .print-q {
     font-family: var(--display);
