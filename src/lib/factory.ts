@@ -7,7 +7,7 @@ export function newQuestion(stationNumber: number): Question {
     stationNumber,
     text: "",
     options: { "1": "", X: "", "2": "" },
-    correct: "1",
+    correct: null,
   };
 }
 
@@ -16,7 +16,12 @@ export function newWalk(): Walk {
     id: shortId(6),
     title: "",
     status: "draft",
-    settings: { showQuestionText: true, printable: true },
+    settings: {
+      showQuestionText: true,
+      printable: true,
+      includeTiebreaker: true,
+      showResults: true,
+    },
     questions: [newQuestion(1)],
     createdAt: Date.now(),
   };

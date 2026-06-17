@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { storage } from "../storage";
 import { newQuestion } from "../lib/factory";
+import { hasPendingChanges, walkContent } from "../lib/walk";
 import { Toggle } from "../components/Switch";
+import { ConfirmSheet } from "../components/ConfirmSheet";
+import { EyeIcon, PlusIcon, ShareIcon, UploadIcon } from "../components/Icons";
 import { OPTION_KEYS, type OptionKey, type Question, type Walk } from "../types";
 
 type SaveState = "idle" | "saving" | "saved";
@@ -10,18 +13,53 @@ type SaveState = "idle" | "saving" | "saved";
 export default function EditorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [walk, setWalk] = useState<Walk | null>(null);
   const [missing, setMissing] = useState(false);
-  const [save, setSave] = useState<SaveState>("idle");
+  const [, setSave] = useState<SaveState>("idle");
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  // How many participants have already submitted. >0 => editing is guarded.
+  const [submissionCount, setSubmissionCount] = useState(0);
+  // Set once the organiser confirms they want to edit a walk that has results.
+  const [editUnlocked, setEditUnlocked] = useState(false);
+  const [confirmEdit, setConfirmEdit] = useState(false);
   const timer = useRef<number>();
 
   useEffect(() => {
     if (!id) return;
-    storage.getWalk(id).then((w) => (w ? setWalk(w) : setMissing(true)));
+    storage.getWalk(id).then((w) => {
+      if (w) {
+        // Backfill: walks published before snapshots existed get one now so the
+        // draft-vs-live model has a baseline. Treated as up-to-date (clean).
+        if (w.status === "published" && !w.publishedSnapshot) {
+          const migrated: Walk = { ...w, publishedSnapshot: walkContent(w) };
+          setWalk(migrated);
+          storage.saveWalk(migrated);
+          return;
+        }
+        setWalk(w);
+        return;
+      }
+      // Not yet persisted — a brand-new walk arrives as a draft in nav state and
+      // is only written on the first edit.
+      const draft = (location.state as { draft?: Walk } | null)?.draft;
+      if (draft && draft.id === id) setWalk(draft);
+      else setMissing(true);
+    });
+    storage.getLeaderboard(id).then((b) => setSubmissionCount(b.length));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  const locked = submissionCount > 0;
+  const canEdit = !locked || editUnlocked;
 
   // Debounced autosave whenever the draft changes.
   function update(mutate: (w: Walk) => Walk) {
+    // Editing a walk with results is gated behind a single explicit confirm.
+    if (!canEdit) {
+      setConfirmEdit(true);
+      return;
+    }
     setWalk((prev) => {
       if (!prev) return prev;
       const next = mutate(structuredClone(prev));
@@ -79,60 +117,96 @@ export default function EditorPage() {
         .map((q, i) => ({ ...q, stationNumber: i + 1 })),
     }));
 
+  // Publish (first time) or Update (re-publish edits). Both copy the current
+  // draft into the live snapshot so participants see the new version. Same id,
+  // so the share code and QR never change. Persist synchronously — a debounced
+  // save would race the navigation and the participant page would read a stale
+  // walk.
   async function publish() {
-    update((w) => ({
-      ...w,
+    const firstPublish = walk!.status !== "published";
+    window.clearTimeout(timer.current);
+    const now = Date.now();
+    const next: Walk = {
+      ...walk!,
       status: "published",
-      publishedAt: w.publishedAt ?? Date.now(),
-    }));
-    navigate(`/walk/${walk!.id}/share`);
+      publishedAt: walk!.publishedAt ?? now,
+      lastPublishedAt: now,
+      publishedSnapshot: walkContent(walk!),
+    };
+    setWalk(next);
+    await storage.saveWalk(next);
+    // First publish → take them to the share screen. A re-publish (update) keeps
+    // them in the editor; the "pending changes" banner simply clears.
+    if (firstPublish) navigate(`/walk/${walk!.id}/share`);
   }
 
   const canPublish =
     walk.title.trim().length > 0 &&
     walk.questions.length > 0 &&
     walk.questions.every(
-      (q) => OPTION_KEYS.every((k) => q.options[k].trim().length > 0),
+      (q) =>
+        q.correct !== null &&
+        OPTION_KEYS.every((k) => q.options[k].trim().length > 0),
     );
+
+  // Published walk whose draft no longer matches the live snapshot.
+  const dirty = hasPendingChanges(walk);
 
   return (
     <main className="page">
-      <div className="row between no-print">
-        <Link to="/" className="linkbtn">
-          ← Mina promenader
-        </Link>
-        <span className="pill" data-savestate={save}>
-          {save === "saving"
-            ? "Sparar…"
-            : save === "saved"
-              ? "✓ Sparat"
-              : "Autospar på"}
-        </span>
+      {locked && !editUnlocked && (
+        <div className="banner danger">
+          <div>
+            <strong>🔒 {submissionCount} inlämningar finns redan</strong>
+            <p>
+              Ändringar kan göra topplistan ogiltig. Rätta gärna stavfel — men ta
+              inte bort frågor och ändra inte rätt svar.
+            </p>
+          </div>
+          <button className="btn sm" onClick={() => setConfirmEdit(true)}>
+            Redigera ändå
+          </button>
+        </div>
+      )}
+      {locked && editUnlocked && (
+        <div className="banner warn">
+          <div>
+            <strong>⚠️ Redigeringsläge</strong>
+            <p>
+              {submissionCount} inlämningar finns. Var försiktig: ändra inte
+              innebörd eller rätt svar, annars blir topplistan ogiltig.
+            </p>
+          </div>
+        </div>
+      )}
+      {dirty && (
+        <div className="banner info">
+          <div>
+            <strong>Ändringar är inte publicerade</strong>
+            <p>
+              Deltagare ser fortfarande den tidigare versionen tills du
+              uppdaterar. Samma länk och QR-kod.
+            </p>
+          </div>
+          <button className="btn sm blaze" onClick={publish} disabled={!canPublish}>
+            <UploadIcon size={15} /> Uppdatera
+          </button>
+        </div>
+      )}
+
+      <h2 style={{ fontSize: "1.5rem", marginTop: "1.6rem" }}>Inställningar</h2>
+
+      <div className="field" style={{ marginTop: "1.2rem" }}>
+        <label>Promenadens namn</label>
+        <input
+          type="text"
+          value={walk.title}
+          placeholder="Döp din promenad"
+          onChange={(e) => update((w) => ({ ...w, title: e.target.value }))}
+        />
       </div>
 
-      <p className="eyebrow" style={{ marginTop: "1.2rem" }}>
-        <span className={`pill ${walk.status}`}>
-          {walk.status === "published" ? "Publicerad" : "Utkast"}
-        </span>
-      </p>
-
-      <input
-        type="text"
-        value={walk.title}
-        placeholder="Namnge promenaden…"
-        onChange={(e) => update((w) => ({ ...w, title: e.target.value }))}
-        style={{
-          fontFamily: "var(--display)",
-          fontSize: "clamp(1.8rem, 6vw, 3rem)",
-          fontWeight: 600,
-          border: "none",
-          background: "transparent",
-          padding: "0.6rem 0",
-          letterSpacing: "-0.02em",
-        }}
-      />
-
-      <div className="card" style={{ marginTop: "0.6rem" }}>
+      <div className="stack" style={{ gap: "0.9rem", marginTop: "0.6rem" }}>
         <Toggle
           on={walk.settings.showQuestionText}
           onChange={(v) =>
@@ -142,9 +216,8 @@ export default function EditorPage() {
             }))
           }
           title="Visa frågetext i appen"
-          hint="Av = deltagaren ser bara svarsknapparna och läser frågan på skylten ute."
+          hint="Deltagaren ser frågans text i appen, inte bara svarsknapparna."
         />
-        <div style={{ height: "0.7rem" }} />
         <Toggle
           on={walk.settings.printable}
           onChange={(v) =>
@@ -155,6 +228,28 @@ export default function EditorPage() {
           }
           title="Kan skrivas ut"
           hint="Aktiverar utskriftsvy med en fråga per A4."
+        />
+        <Toggle
+          on={walk.settings.includeTiebreaker}
+          onChange={(v) =>
+            update((w) => ({
+              ...w,
+              settings: { ...w.settings, includeTiebreaker: v },
+            }))
+          }
+          title="Inkludera utslagsfråga"
+          hint="En fritextfråga som avgör vid lika poäng."
+        />
+        <Toggle
+          on={walk.settings.showResults}
+          onChange={(v) =>
+            update((w) => ({
+              ...w,
+              settings: { ...w.settings, showResults: v },
+            }))
+          }
+          title="Visa resultat för deltagare"
+          hint="Deltagaren ser sina poäng och topplistan direkt efter inlämning."
         />
       </div>
 
@@ -170,23 +265,11 @@ export default function EditorPage() {
           <div key={q.id} className="card">
             <div className="row between" style={{ marginBottom: "0.8rem" }}>
               <div className="row">
-                <span className="station-chip">Station {q.stationNumber}</span>
-                <input
-                  type="number"
-                  min={1}
-                  value={q.stationNumber}
-                  onChange={(e) =>
-                    setQ(q.id, {
-                      stationNumber: Math.max(1, Number(e.target.value) || 1),
-                    })
-                  }
-                  style={{ width: "5rem" }}
-                  aria-label="Stationsnummer"
-                />
+                <span className="station-chip">Fråga {i + 1}</span>
               </div>
               <button
                 className="linkbtn"
-                onClick={() => removeQuestion(q.id)}
+                onClick={() => setPendingDelete(q.id)}
                 disabled={walk.questions.length === 1}
               >
                 Ta bort
@@ -194,7 +277,7 @@ export default function EditorPage() {
             </div>
 
             <div className="field">
-              <label>Fråga {i + 1}</label>
+              <label>Fråga</label>
               <textarea
                 value={q.text}
                 placeholder="Skriv frågan…"
@@ -223,27 +306,26 @@ export default function EditorPage() {
                   data-correct={q.correct === k}
                   style={{ cursor: "default" }}
                 >
-                  <div className="row between">
-                    <span className="key">{k}</span>
+                  <div
+                    className="row"
+                    style={{ gap: "0.7rem", alignItems: "center" }}
+                  >
+                    <span className="key-inline">{k}</span>
+                    <input
+                      type="text"
+                      value={q.options[k]}
+                      placeholder={`Svar ${k}`}
+                      onChange={(e) => setOpt(q.id, k, e.target.value)}
+                      style={{ flex: 1 }}
+                    />
                     <button
-                      className="linkbtn"
+                      className="correct-toggle"
+                      data-on={q.correct === k}
                       onClick={() => setQ(q.id, { correct: k })}
-                      style={{
-                        color:
-                          q.correct === k
-                            ? "var(--forest)"
-                            : "var(--ink-soft)",
-                      }}
                     >
-                      {q.correct === k ? "✓ Rätt" : "Sätt rätt"}
+                      {q.correct === k ? "Rätt svar" : "Sätt rätt"}
                     </button>
                   </div>
-                  <input
-                    type="text"
-                    value={q.options[k]}
-                    placeholder={`Svar ${k}`}
-                    onChange={(e) => setOpt(q.id, k, e.target.value)}
-                  />
                 </div>
               ))}
             </div>
@@ -251,59 +333,115 @@ export default function EditorPage() {
         ))}
       </div>
 
-      <button
-        className="btn ghost"
-        onClick={addQuestion}
-        style={{ marginTop: "1.1rem" }}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          marginTop: "2rem",
+        }}
       >
-        + Lägg till fråga
-      </button>
-
-      <hr className="divider" />
-
-      <h2 style={{ fontSize: "1.5rem" }}>Utslagsfråga</h2>
-      <p className="muted" style={{ margin: "0.4rem 0 1rem" }}>
-        Valfri fritextfråga som avgör vid lika poäng. (Avgörandet sker i en
-        senare fas — i v1 sparas bara svaret.)
-      </p>
-      <div className="field">
-        <textarea
-          value={walk.tiebreaker?.question ?? ""}
-          placeholder="T.ex. Hur många kottar finns i korgen?"
-          onChange={(e) =>
-            update((w) => ({
-              ...w,
-              tiebreaker: e.target.value.trim()
-                ? { question: e.target.value }
-                : undefined,
-            }))
-          }
-        />
-      </div>
-
-      <hr className="divider" />
-
-      <div className="row" style={{ gap: "0.7rem" }}>
-        <button className="btn blaze" onClick={publish} disabled={!canPublish}>
-          ✦ Publicera & dela
+        <button className="btn" onClick={addQuestion}>
+          <PlusIcon /> Lägg till fråga
         </button>
-        {walk.status === "published" && (
-          <Link to={`/walk/${walk.id}/share`} className="btn ghost">
-            Delningslänk & QR
-          </Link>
-        )}
-        {walk.settings.printable && (
-          <Link to={`/walk/${walk.id}/print`} className="btn ghost">
-            Förhandsgranska utskrift
-          </Link>
-        )}
       </div>
-      {!canPublish && (
-        <p className="muted" style={{ marginTop: "0.7rem", fontSize: "0.9rem" }}>
-          För att publicera: ange titel och fyll i alla tre alternativ för varje
-          fråga.
-        </p>
+
+      {walk.settings.includeTiebreaker && (
+        <>
+          <hr className="divider" />
+
+          <h2 style={{ fontSize: "1.5rem" }}>Utslagsfråga</h2>
+          <p className="muted" style={{ margin: "0.4rem 0 1rem" }}>
+            Valfri fritextfråga som avgör vid lika poäng. (Avgörandet sker i en
+            senare fas — i v1 sparas bara svaret.)
+          </p>
+          <div className="field">
+            <textarea
+              value={walk.tiebreaker?.question ?? ""}
+              placeholder="T.ex. Hur många kottar finns i korgen?"
+              onChange={(e) =>
+                update((w) => ({
+                  ...w,
+                  tiebreaker: e.target.value.trim()
+                    ? { question: e.target.value }
+                    : undefined,
+                }))
+              }
+            />
+          </div>
+        </>
       )}
+
+      <hr className="divider" />
+
+      <div className="stack" style={{ gap: "0.7rem" }}>
+        <div className="editor-actions">
+          <Link to={`/walk/${walk.id}/preview`} className="linkbtn">
+            <EyeIcon /> Förhandsgranska
+          </Link>
+          {walk.status === "published" && (
+            <Link to={`/walk/${walk.id}/share`} className="btn ghost">
+              <ShareIcon /> {walk.settings.printable ? "Dela & skriv ut" : "Delningslänk & QR"}
+            </Link>
+          )}
+          <button
+            className="btn blaze"
+            onClick={publish}
+            disabled={!canPublish || (walk.status === "published" && !dirty)}
+          >
+            <UploadIcon />{" "}
+            {walk.status !== "published"
+              ? "Publicera"
+              : dirty
+                ? "Uppdatera"
+                : "Publicerad"}
+          </button>
+          {walk.status === "published" &&
+            (walk.lastPublishedAt ?? walk.publishedAt) && (
+              <p className="muted actions-meta">
+                {walk.lastPublishedAt &&
+                walk.lastPublishedAt !== walk.publishedAt
+                  ? "Uppdaterad "
+                  : "Publicerad "}
+                {new Date(
+                  walk.lastPublishedAt ?? walk.publishedAt!,
+                ).toLocaleString("sv-SE", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
+              </p>
+            )}
+          {!canPublish && (
+            <p className="muted publish-hint">
+              Ange titel, fyll i alla tre alternativ och markera rätt svar för
+              varje fråga för att kunna publicera.
+            </p>
+          )}
+        </div>
+      </div>
+
+      <ConfirmSheet
+        open={confirmEdit}
+        title="Redigera en promenad med resultat?"
+        body={`${submissionCount} deltagare har redan lämnat in. Ändrar du frågorna kan den nuvarande topplistan bli ogiltig. Rätta gärna stavfel — men ta inte bort frågor och ändra inte innebörd eller rätt svar.`}
+        confirmLabel="Redigera ändå"
+        onConfirm={() => {
+          setEditUnlocked(true);
+          setConfirmEdit(false);
+        }}
+        onClose={() => setConfirmEdit(false)}
+      />
+
+      <ConfirmSheet
+        open={pendingDelete !== null}
+        title="Ta bort frågan?"
+        body="Frågan tas bort permanent och kan inte återställas."
+        confirmLabel="Ta bort"
+        onConfirm={() => {
+          if (pendingDelete) removeQuestion(pendingDelete);
+          setPendingDelete(null);
+        }}
+        onClose={() => setPendingDelete(null)}
+      />
     </main>
   );
 }

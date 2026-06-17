@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { storage, type LeaderboardEntry } from "../storage";
 import type { Walk } from "../types";
 
 export default function LeaderboardPage() {
   const { id } = useParams();
+  const location = useLocation();
+  const backTo: string = (location.state as { from?: string })?.from ?? "/";
+  const backLabel = backTo.startsWith("/p/") ? "← Tillbaka" : "← Mina promenader";
   const [walk, setWalk] = useState<Walk | null>(null);
   const [board, setBoard] = useState<LeaderboardEntry[] | null>(null);
 
@@ -14,11 +17,47 @@ export default function LeaderboardPage() {
     storage.getLeaderboard(id).then(setBoard);
   }, [id]);
 
+  // Participants (entered via /p/) only see the board once the organiser
+  // enables results. Creator routes (from "/") are never gated.
+  const withheld =
+    backTo.startsWith("/p/") && walk?.settings.showResults === false;
+
   return (
     <main className="page">
-      <Link to="/" className="linkbtn">
-        ← Mina promenader
+      <Link to={backTo} className="linkbtn">
+        {backLabel}
       </Link>
+      {withheld ? (
+        <>
+          <p className="eyebrow" style={{ marginTop: "1.2rem" }}>
+            Topplista
+          </p>
+          <h1
+            className="display-xl"
+            style={{ fontSize: "clamp(2.2rem,7vw,3.6rem)" }}
+          >
+            {walk?.title ?? "Promenad"}
+          </h1>
+          <div className="empty" style={{ marginTop: "1.6rem" }}>
+            Arrangören avslöjar topplistan när alla är klara.
+          </div>
+        </>
+      ) : (
+        <LeaderboardBody walk={walk} board={board} />
+      )}
+    </main>
+  );
+}
+
+function LeaderboardBody({
+  walk,
+  board,
+}: {
+  walk: Walk | null;
+  board: LeaderboardEntry[] | null;
+}) {
+  return (
+    <>
       <p className="eyebrow" style={{ marginTop: "1.2rem" }}>
         Topplista
       </p>
@@ -54,6 +93,6 @@ export default function LeaderboardPage() {
         Topplistan visar inlämningar från den här webbläsaren. Gemensam topplista
         mellan enheter kommer med Firebase.
       </p>
-    </main>
+    </>
   );
 }

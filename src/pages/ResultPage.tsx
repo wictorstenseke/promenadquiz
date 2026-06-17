@@ -1,18 +1,45 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { storage, type LeaderboardEntry } from "../storage";
+import type { Walk } from "../types";
 
 export default function ResultPage() {
   const { id, submissionId } = useParams();
   const [board, setBoard] = useState<LeaderboardEntry[] | null>(null);
+  const [walk, setWalk] = useState<Walk | null>(null);
 
   useEffect(() => {
-    if (id) storage.getLeaderboard(id).then(setBoard);
+    if (!id) return;
+    storage.getLeaderboard(id).then(setBoard);
+    storage.getWalk(id).then(setWalk);
   }, [id]);
 
   const me = board?.find((e) => e.submission.id === submissionId);
 
-  if (!board) return <main className="page muted">Laddar…</main>;
+  if (!board || !walk) return <main className="page muted">Laddar…</main>;
+
+  // Organiser may withhold scores/leaderboard until the reveal.
+  if (walk.settings.showResults === false) {
+    return (
+      <main className="page play-wrap" style={{ textAlign: "center" }}>
+        <p className="eyebrow" style={{ justifyContent: "center" }}>
+          Inlämnat · {me?.submission.participantName}
+        </p>
+        <h1 className="display-xl" style={{ marginTop: "1rem" }}>
+          Tack, dina svar är inskickade!
+        </h1>
+        <p className="lede" style={{ margin: "0.8rem auto 0" }}>
+          Arrangören går igenom de rätta svaren och avslöjar poäng och topplista
+          när alla är klara.
+        </p>
+        <div className="row" style={{ justifyContent: "center", marginTop: "1.6rem" }}>
+          <Link to="/" className="btn ghost">
+            Till start
+          </Link>
+        </div>
+      </main>
+    );
+  }
   if (!me)
     return (
       <main className="page">

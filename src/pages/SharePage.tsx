@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { storage } from "../storage";
+import { PrintSheets } from "../components/PrintSheets";
+import { TrophyIcon, PrinterIcon } from "../components/Icons";
 import type { Walk } from "../types";
 
 export default function SharePage() {
@@ -24,9 +26,10 @@ export default function SharePage() {
   }
 
   return (
-    <main className="page">
-      <Link to={`/walk/${walk.id}/edit`} className="linkbtn">
-        ← Tillbaka till redigering
+    <>
+    <main className="page no-print">
+      <Link to={`/walk/${walk.id}/edit`} className="btn ghost sm">
+        ← Tillbaka till redigeringsläge
       </Link>
       <p className="eyebrow" style={{ marginTop: "1.2rem" }}>
         Redo att dela
@@ -39,7 +42,28 @@ export default function SharePage() {
         <strong>{walk.id}</strong>.
       </p>
 
-      <div className="card ticket" style={{ marginTop: "1.6rem" }}>
+      <div
+        className="card ticket"
+        style={{ marginTop: "1.6rem", position: "relative" }}
+      >
+        <div
+          className="row"
+          style={{
+            gap: "0.7rem",
+            position: "absolute",
+            top: "1rem",
+            right: "1rem",
+          }}
+        >
+          <Link to={`/walk/${walk.id}/leaderboard`} className="btn ghost sm">
+            <TrophyIcon size={16} /> Topplista
+          </Link>
+          {walk.settings.printable && (
+            <button className="btn ghost sm" onClick={() => window.print()}>
+              <PrinterIcon size={16} /> Skriv ut frågor
+            </button>
+          )}
+        </div>
         <div className="share-grid">
           <div className="qr-frame">
             <QRCodeSVG value={url} size={168} bgColor="#ffffff" fgColor="#1c1b17" />
@@ -58,21 +82,12 @@ export default function SharePage() {
         </div>
       </div>
 
-      <div className="row" style={{ gap: "0.7rem", marginTop: "1.4rem" }}>
-        <Link to={`/walk/${walk.id}/leaderboard`} className="btn ghost">
-          Topplista
-        </Link>
-        {walk.settings.printable && (
-          <Link to={`/walk/${walk.id}/print`} className="btn ghost">
-            Skriv ut frågor
-          </Link>
-        )}
-      </div>
-
       <p className="muted" style={{ marginTop: "1.6rem", fontSize: "0.9rem" }}>
         Obs: i v1 lagras allt lokalt i den här webbläsaren. Äkta delning mellan
         enheter och gemensam topplista kommer när Firebase kopplas in.
       </p>
     </main>
+    {walk.settings.printable && <PrintSheets walk={walk} />}
+    </>
   );
 }

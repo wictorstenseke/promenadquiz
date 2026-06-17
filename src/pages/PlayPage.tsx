@@ -7,8 +7,12 @@ import {
   saveProgress,
 } from "../storage/progress";
 import { scoreWalk } from "../lib/scoring";
+import { liveWalk } from "../lib/walk";
 import { uid } from "../lib/id";
 import { OPTION_KEYS, type OptionKey, type Walk } from "../types";
+import { ConfirmSheet } from "../components/ConfirmSheet";
+import { Sheet } from "../components/Sheet";
+import { MoreIcon } from "../components/Icons";
 
 export default function PlayPage() {
   const { id } = useParams();
@@ -18,17 +22,20 @@ export default function PlayPage() {
 
   const [name, setName] = useState("");
   const [started, setStarted] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [answers, setAnswers] = useState<Record<string, OptionKey>>({});
   const [tiebreak, setTiebreak] = useState("");
   const [index, setIndex] = useState(0);
+  const [confirmSubmit, setConfirmSubmit] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     storage.getWalk(id).then((w) => {
       if (!w) return setError("Promenaden hittades inte.");
-      if (w.status !== "published")
+      if (w.status !== "published" || !w.publishedSnapshot)
         return setError("Den här promenaden är inte publicerad än.");
-      setWalk(w);
+      // Participants always see the frozen published version, never the draft.
+      setWalk(liveWalk(w));
       const p = loadProgress(w.id);
       if (p) {
         setName(p.participantName);
@@ -81,7 +88,16 @@ export default function PlayPage() {
   if (!started) {
     return (
       <main className="page play-wrap">
-        <p className="eyebrow">{walk.questions.length} stationer · 1 X 2</p>
+        <div className="row between" style={{ marginBottom: "0.6rem" }}>
+          <p className="eyebrow" style={{ margin: 0 }}>{walk.questions.length} stationer · 1 X 2</p>
+          <button
+            className="icon-btn"
+            aria-label="Fler val"
+            onClick={() => setMoreOpen(true)}
+          >
+            <MoreIcon />
+          </button>
+        </div>
         <h1 className="display-xl" style={{ fontSize: "clamp(2.2rem,8vw,3.6rem)" }}>
           {walk.title}
         </h1>
@@ -93,26 +109,59 @@ export default function PlayPage() {
               type="text"
               value={name}
               autoFocus
-              placeholder="t.ex. Lag Kantarell"
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) =>
                 e.key === "Enter" && name.trim() && setStarted(true)
               }
             />
           </div>
-          <button
-            className="btn blaze"
-            disabled={!name.trim()}
-            onClick={() => setStarted(true)}
-          >
-            Starta promenaden →
-          </button>
+          <div className="row" style={{ justifyContent: "flex-end" }}>
+            <button
+              className="btn blaze"
+              disabled={!name.trim()}
+              onClick={() => setStarted(true)}
+            >
+              Starta promenaden →
+            </button>
+          </div>
         </div>
+
+        <Sheet open={moreOpen} onClose={() => setMoreOpen(false)}>
+          <div className="sheet-view">
+            <h3 className="sheet-title">{walk.title}</h3>
+            <div className="sheet-actions">
+              {walk.settings.showResults ? (
+                <button
+                  className="menu-item"
+                  onClick={() => {
+                    setMoreOpen(false);
+                    navigate(`/walk/${id}/leaderboard`, { state: { from: `/p/${id}` } });
+                  }}
+                >
+                  🏆 Visa topplistan
+                </button>
+              ) : (
+                <p className="muted" style={{ margin: 0 }}>
+                  Topplistan visas när arrangören avslöjar resultatet.
+                </p>
+              )}
+            </div>
+          </div>
+        </Sheet>
       </main>
     );
   }
 
+  // Gate submission: if any questions are unanswered, confirm first.
   function submit() {
+    if (answeredCount < walk!.questions.length) {
+      setConfirmSubmit(true);
+      return;
+    }
+    finalize();
+  }
+
+  function finalize() {
     const result = scoreWalk(walk!, answers);
     const submissionId = uid();
     storage
@@ -139,7 +188,7 @@ export default function PlayPage() {
     <main className="page play-wrap">
       <div className="row between" style={{ marginBottom: "0.8rem" }}>
         <span className="station-chip">
-          {onTiebreak ? "Utslagsfråga" : `Station ${q!.stationNumber}`}
+          {onTiebreak ? "Utslagsfråga" : `Fråga ${q!.stationNumber}`}
         </span>
         <span className="muted" style={{ fontFamily: "var(--mono)", fontSize: "0.8rem" }}>
           {index + 1} / {steps}
@@ -208,7 +257,7 @@ export default function PlayPage() {
 
         {isLast ? (
           <button className="btn blaze" onClick={submit}>
-            ✦ Lämna in ({answeredCount}/{walk.questions.length})
+            Lämna in ({answeredCount}/{walk.questions.length})
           </button>
         ) : (
           <button
@@ -234,7 +283,7 @@ export default function PlayPage() {
           <button
             key={qq.id}
             className="dot"
-            aria-label={`Station ${qq.stationNumber}`}
+            aria-label={`Fråga ${qq.stationNumber}`}
             data-answered={!!answers[qq.id]}
             data-current={i === index}
             onClick={() => setIndex(i)}
@@ -250,6 +299,18 @@ export default function PlayPage() {
           />
         )}
       </div>
+
+      <ConfirmSheet
+        open={confirmSubmit}
+        title="Lämna in ändå?"
+        body={`Du har svarat på ${answeredCount} av ${walk.questions.length} frågor. Frågor utan svar räknas som fel.`}
+        confirmLabel="Lämna in"
+        onConfirm={() => {
+          setConfirmSubmit(false);
+          finalize();
+        }}
+        onClose={() => setConfirmSubmit(false)}
+      />
     </main>
   );
 }

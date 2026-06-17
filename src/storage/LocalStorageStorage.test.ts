@@ -10,7 +10,7 @@ function makeWalk(id: string, createdAt: number): Walk {
     id,
     title: `Walk ${id}`,
     status: "draft",
-    settings: { showQuestionText: true, printable: true },
+    settings: { showQuestionText: true, printable: true, includeTiebreaker: true, showResults: true },
     questions: [],
     createdAt,
   };

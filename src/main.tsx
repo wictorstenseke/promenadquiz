@@ -6,7 +6,7 @@ import { Shell } from "./components/Shell";
 import HomePage from "./pages/HomePage";
 import EditorPage from "./pages/EditorPage";
 import SharePage from "./pages/SharePage";
-import PrintPage from "./pages/PrintPage";
+import PreviewPage from "./pages/PreviewPage";
 import PlayPage from "./pages/PlayPage";
 import ResultPage from "./pages/ResultPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
@@ -18,6 +18,7 @@ const router = createBrowserRouter([
     children: [
       { path: "/", element: <HomePage /> },
       { path: "/walk/:id/edit", element: <EditorPage /> },
+      { path: "/walk/:id/preview", element: <PreviewPage /> },
       { path: "/walk/:id/share", element: <SharePage /> },
       { path: "/walk/:id/leaderboard", element: <LeaderboardPage /> },
       { path: "/p/:id", element: <PlayPage /> },
@@ -25,8 +26,6 @@ const router = createBrowserRouter([
       { path: "*", element: <NotFoundPage /> },
     ],
   },
-  // print view runs outside the shell chrome
-  { path: "/walk/:id/print", element: <PrintPage /> },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
