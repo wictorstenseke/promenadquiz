@@ -1,5 +1,8 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
-import { getFirestore, type Firestore } from "firebase/firestore";
+import {
+  initializeFirestore,
+  type Firestore,
+} from "firebase/firestore";
 
 /**
  * Firebase config is read from Vite env vars (VITE_FIREBASE_*). These are web
@@ -26,7 +29,12 @@ let firestore: Firestore | undefined;
 
 if (firebaseEnabled) {
   app = initializeApp(config);
-  firestore = getFirestore(app);
+  // On mobile networks / proxies the default WebChannel stream often fails and
+  // the SDK stalls ~10-15s before falling back to long-polling — which showed
+  // up as a very slow submit. Auto-detect long-polling so it switches up front.
+  firestore = initializeFirestore(app, {
+    experimentalAutoDetectLongPolling: true,
+  });
 }
 
 /** Firestore instance, or null when no config is present. */
