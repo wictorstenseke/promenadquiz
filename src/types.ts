@@ -16,7 +16,7 @@ export interface Question {
 }
 
 export interface WalkSettings {
-  /** false => only the answer buttons are shown to the participant. */
+  /** false => the question text is hidden; only the 1/X/2 options are shown. */
   showQuestionText: boolean;
   printable: boolean;
   /** false => the tiebreaker (utslagsfråga) section is hidden and unused. */

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { storage } from "../storage";
 import { PrintSheets } from "../components/PrintSheets";
+import { TalongSheets } from "../components/TalongSheets";
+import { PrintMenu } from "../components/PrintMenu";
 import { OPTION_KEYS, type Walk } from "../types";
 
 export default function PreviewPage() {
@@ -25,11 +27,7 @@ export default function PreviewPage() {
         <Link to={`/walk/${walk.id}/edit`} className="linkbtn">
           ← Tillbaka till redigering
         </Link>
-        {walk.settings.printable && (
-          <button className="btn ghost sm" onClick={() => window.print()}>
-            Skriv ut
-          </button>
-        )}
+        {walk.settings.printable && <PrintMenu />}
       </div>
 
       <p className="eyebrow" style={{ marginTop: "1.4rem" }}>
@@ -81,6 +79,7 @@ export default function PreviewPage() {
       </div>
     </main>
     {walk.settings.printable && <PrintSheets walk={walk} />}
+    {walk.settings.printable && <TalongSheets walk={walk} />}
     </>
   );
 }

@@ -66,16 +66,16 @@ export default function HomePage() {
         <em>digitalt.</em>
       </h1>
       <p className="lede">
-        Sätt ihop frågor i klassiskt 1 · X · 2-format, kör digitalt eller skriv
-        ut en fråga per A4, och dela med en länk. Allt sparas automatiskt.
+        Bygg frågor, kör digitalt eller skriv ut, och dela med en länk. Allt
+        sparas automatiskt.
       </p>
 
       <div className="row" style={{ marginTop: "1.6rem" }}>
         <button className="btn blaze" onClick={create}>
-          <PlusIcon /> Ny promenad
+          <PlusIcon /> Ny tipspromenad
         </button>
         <button className="btn" onClick={() => setJoinOpen(true)}>
-          <EnterIcon /> Gå med
+          <EnterIcon /> Gå med via kod
         </button>
       </div>
 

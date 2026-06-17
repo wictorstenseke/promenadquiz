@@ -24,7 +24,7 @@ export default function LeaderboardPage() {
 
   return (
     <main className="page">
-      <Link to={backTo} className="linkbtn">
+      <Link to={backTo} className="btn ghost sm">
         {backLabel}
       </Link>
       {withheld ? (

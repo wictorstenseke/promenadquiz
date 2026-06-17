@@ -5,7 +5,7 @@ import { newQuestion } from "../lib/factory";
 import { hasPendingChanges, walkContent } from "../lib/walk";
 import { Toggle } from "../components/Switch";
 import { ConfirmSheet } from "../components/ConfirmSheet";
-import { EyeIcon, PlusIcon, ShareIcon, UploadIcon } from "../components/Icons";
+import { EyeIcon, PlusIcon, ShareIcon, UploadIcon, InfoIcon } from "../components/Icons";
 import { OPTION_KEYS, type OptionKey, type Question, type Walk } from "../types";
 
 type SaveState = "idle" | "saving" | "saved";
@@ -23,6 +23,8 @@ export default function EditorPage() {
   // Set once the organiser confirms they want to edit a walk that has results.
   const [editUnlocked, setEditUnlocked] = useState(false);
   const [confirmEdit, setConfirmEdit] = useState(false);
+  const [tipOpen, setTipOpen] = useState(false);
+  const [tieTipOpen, setTieTipOpen] = useState(false);
   const timer = useRef<number>();
 
   useEffect(() => {
@@ -196,17 +198,19 @@ export default function EditorPage() {
 
       <h2 style={{ fontSize: "1.5rem", marginTop: "1.6rem" }}>Inställningar</h2>
 
-      <div className="field" style={{ marginTop: "1.2rem" }}>
-        <label>Promenadens namn</label>
-        <input
-          type="text"
-          value={walk.title}
-          placeholder="Döp din promenad"
-          onChange={(e) => update((w) => ({ ...w, title: e.target.value }))}
-        />
-      </div>
+      <div className="card" style={{ marginTop: "1.2rem" }}>
+        <div className="field">
+          <label>Promenadens namn</label>
+          <input
+            className="title-input"
+            type="text"
+            value={walk.title}
+            placeholder="Döp din promenad"
+            onChange={(e) => update((w) => ({ ...w, title: e.target.value }))}
+          />
+        </div>
 
-      <div className="stack" style={{ gap: "0.9rem", marginTop: "0.6rem" }}>
+        <div className="stack" style={{ gap: "0.9rem", marginTop: "0.9rem" }}>
         <Toggle
           on={walk.settings.showQuestionText}
           onChange={(v) =>
@@ -251,6 +255,7 @@ export default function EditorPage() {
           title="Visa resultat för deltagare"
           hint="Deltagaren ser sina poäng och topplistan direkt efter inlämning."
         />
+        </div>
       </div>
 
       <hr className="divider" />
@@ -349,11 +354,27 @@ export default function EditorPage() {
         <>
           <hr className="divider" />
 
-          <h2 style={{ fontSize: "1.5rem" }}>Utslagsfråga</h2>
-          <p className="muted" style={{ margin: "0.4rem 0 1rem" }}>
-            Valfri fritextfråga som avgör vid lika poäng. (Avgörandet sker i en
-            senare fas — i v1 sparas bara svaret.)
-          </p>
+          <div className="row tie-head" style={{ gap: "0.5rem", marginBottom: "1rem" }}>
+            <h2 style={{ fontSize: "1.5rem" }}>Utslagsfråga</h2>
+            <span
+              className="tip tip-info"
+              data-open={tieTipOpen}
+              onMouseLeave={() => setTieTipOpen(false)}
+            >
+              <button
+                type="button"
+                className="info-btn"
+                aria-label="Om utslagsfrågan"
+                onClick={() => setTieTipOpen((o) => !o)}
+              >
+                <InfoIcon size={18} />
+              </button>
+              <span className="tip-bubble" role="tooltip">
+                Valfri fritextfråga som avgör vid lika poäng. (Avgörandet sker i
+                en senare fas — i v1 sparas bara svaret.)
+              </span>
+            </span>
+          </div>
           <div className="field">
             <textarea
               value={walk.tiebreaker?.question ?? ""}
@@ -383,18 +404,30 @@ export default function EditorPage() {
               <ShareIcon /> {walk.settings.printable ? "Dela & skriv ut" : "Delningslänk & QR"}
             </Link>
           )}
-          <button
-            className="btn blaze"
-            onClick={publish}
-            disabled={!canPublish || (walk.status === "published" && !dirty)}
+          <span
+            className="tip"
+            data-open={tipOpen}
+            onClick={() => !canPublish && setTipOpen((o) => !o)}
           >
-            <UploadIcon />{" "}
-            {walk.status !== "published"
-              ? "Publicera"
-              : dirty
-                ? "Uppdatera"
-                : "Publicerad"}
-          </button>
+            <button
+              className="btn blaze"
+              onClick={publish}
+              disabled={!canPublish || (walk.status === "published" && !dirty)}
+            >
+              <UploadIcon />{" "}
+              {walk.status !== "published"
+                ? "Publicera"
+                : dirty
+                  ? "Uppdatera"
+                  : "Publicerad"}
+            </button>
+            {!canPublish && (
+              <span className="tip-bubble" role="tooltip">
+                Ange titel, fyll i alla tre alternativ och markera rätt svar för
+                varje fråga för att kunna publicera.
+              </span>
+            )}
+          </span>
           {walk.status === "published" &&
             (walk.lastPublishedAt ?? walk.publishedAt) && (
               <p className="muted actions-meta">
@@ -410,12 +443,6 @@ export default function EditorPage() {
                 })}
               </p>
             )}
-          {!canPublish && (
-            <p className="muted publish-hint">
-              Ange titel, fyll i alla tre alternativ och markera rätt svar för
-              varje fråga för att kunna publicera.
-            </p>
-          )}
         </div>
       </div>
 

@@ -235,9 +235,7 @@ export default function PlayPage() {
                   }
                 >
                   <span className="key">{k}</span>
-                  {walk.settings.showQuestionText && (
-                    <span className="val">{q!.options[k]}</span>
-                  )}
+                  {q!.options[k] && <span className="val">{q!.options[k]}</span>}
                 </button>
               ))}
             </div>

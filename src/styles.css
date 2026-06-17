@@ -134,7 +134,7 @@ button {
 .page {
   flex: 1;
   width: 100%;
-  max-width: 980px;
+  max-width: 800px;
   margin: 0 auto;
   padding: clamp(1.4rem, 4vw, 3rem) clamp(1rem, 4vw, 2rem) 5rem;
 }
@@ -160,15 +160,21 @@ button {
 }
 
 .footer-meta a {
-  color: var(--paper);
+  color: inherit;
   text-decoration: none;
-  border-bottom: 1px solid color-mix(in oklab, var(--blaze), transparent 20%);
+  border-bottom: 1px solid transparent;
+  transition: color 0.14s ease, border-color 0.14s ease;
+}
+.footer-meta a:hover {
+  color: var(--paper);
+  border-bottom-color: var(--blaze);
 }
 
 /* ---------- eyebrow / coupon header ---------- */
 .eyebrow {
   font-family: var(--mono);
   font-size: 0.7rem;
+  font-weight: 500;
   letter-spacing: 0.26em;
   text-transform: uppercase;
   color: var(--blaze-deep);
@@ -176,16 +182,13 @@ button {
   align-items: center;
   gap: 0.6rem;
 }
-.eyebrow::before {
-  content: "";
-  width: 22px;
-  height: 2px;
-  background: var(--blaze);
-}
 
 .display-xl {
-  font-size: clamp(2.6rem, 8vw, 4.6rem);
+  font-size: clamp(2rem, 9vw, 4.6rem);
   margin: 0.5rem 0 0;
+  /* Long single words (e.g. "Tipspromenaden") must wrap on narrow screens. */
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 .play-wrap .display-xl {
   margin-top: 1rem;
@@ -209,7 +212,7 @@ button {
   --fg: var(--paper);
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.3rem;
   border: none;
   background: var(--bg);
   color: var(--fg);
@@ -244,6 +247,13 @@ button {
   padding: 0.45rem 0.8rem;
   font-size: 0.85rem;
   border-radius: 9px;
+}
+/* Icon buttons read tighter with less horizontal padding. */
+.btn:has(svg) {
+  padding-inline: 0.85rem;
+}
+.btn.sm:has(svg) {
+  padding-inline: 0.6rem;
 }
 .btn.ghost.danger {
   --fg: var(--blaze-deep);
@@ -383,7 +393,7 @@ button {
   color: var(--ink-soft);
   background: var(--paper);
   border: 1.6px solid var(--line-strong);
-  border-radius: 999px;
+  border-radius: 7px;
   padding: 0.42rem 0.85rem;
   transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
 }
@@ -433,6 +443,14 @@ textarea:focus {
 textarea {
   resize: vertical;
   min-height: 3.2rem;
+}
+
+input[type="text"].title-input {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+  padding: 0.7rem 0.85rem;
 }
 
 .toggle {
@@ -504,7 +522,7 @@ textarea {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   padding: 0.28rem 0.6rem;
-  border-radius: 999px;
+  border-radius: 7px;
   border: 1.4px solid var(--line-strong);
   color: var(--ink-soft);
 }
@@ -521,8 +539,8 @@ textarea {
 
 .station-chip {
   font-family: var(--mono);
-  font-weight: 600;
-  font-size: 0.8rem;
+  font-weight: 500;
+  font-size: 0.75rem;
   color: var(--paper);
   background: var(--forest);
   padding: 0.4rem 0.7rem;
@@ -561,7 +579,8 @@ textarea {
 .editor-actions .btn.ghost {
   order: 2;
 }
-.editor-actions .btn.blaze {
+.editor-actions .btn.blaze,
+.editor-actions .tip {
   order: 3;
 }
 /* Full-width basis forces the timestamp onto its own line, under the buttons. */
@@ -572,13 +591,60 @@ textarea {
   font-size: 0.85rem;
   text-align: right;
 }
-/* Publish hint: own line under the right-hand button cluster on desktop. */
-.editor-actions .publish-hint {
-  order: 5;
-  flex-basis: 100%;
-  margin: 0;
-  font-size: 0.9rem;
-  text-align: right;
+
+/* ---------- tooltip ---------- */
+.tip {
+  position: relative;
+  display: inline-flex;
+}
+.tip-bubble {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  right: 0;
+  z-index: 30;
+  width: max-content;
+  max-width: 250px;
+  padding: 0.6rem 0.75rem;
+  background: var(--forest-deep);
+  color: var(--paper);
+  border: 1.5px solid var(--forest);
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: left;
+  box-shadow: 0 12px 26px -14px #000c, inset 0 1px 0 #ffffff14;
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+.tip:hover .tip-bubble,
+.tip:focus-within .tip-bubble,
+.tip[data-open="true"] .tip-bubble {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* Info-icon variant: bubble grows rightward from a left-anchored icon. */
+.tip-info .tip-bubble {
+  right: auto;
+  left: 0;
+}
+.info-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  border-radius: 999px;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+.info-btn:hover {
+  color: var(--forest);
+  background: #1f4d3a14;
 }
 .muted {
   color: var(--ink-soft);
@@ -638,7 +704,7 @@ textarea {
 .walk-row .meta {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.75rem;
 }
 .walk-row h3 {
   font-size: 1.4rem;
@@ -848,6 +914,14 @@ textarea {
   gap: 1.4rem;
   align-items: center;
 }
+/* Leaderboard + print actions float top-right of the ticket on desktop. */
+.ticket-actions {
+  display: flex;
+  gap: 0.7rem;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
 .qr-frame {
   padding: 0.7rem;
   background: #fff;
@@ -979,6 +1053,30 @@ textarea {
   background: color-mix(in oklab, var(--paper), var(--blaze) 7%);
 }
 
+/* ---------- print dropdown ---------- */
+.print-menu {
+  position: relative;
+}
+.print-menu-pop {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.4rem);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.4rem;
+  min-width: 12rem;
+  background: var(--paper);
+  border: 1.6px solid var(--line-strong);
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
+}
+.print-menu-pop .menu-item {
+  font-size: 0.95rem;
+  padding: 0.6rem 0.8rem;
+}
+
 /* ---------- preview (read-only questions) ---------- */
 .preview-q-text {
   font-size: clamp(1.3rem, 4vw, 1.7rem);
@@ -1004,6 +1102,10 @@ textarea {
 }
 
 @media (max-width: 560px) {
+  /* Top-right nav collapses to a bare home icon on mobile. */
+  .nav-home-label {
+    display: none;
+  }
   .editor-actions {
     flex-direction: column;
     align-items: stretch;
@@ -1016,13 +1118,19 @@ textarea {
     order: 0;
     text-align: left;
   }
-  .editor-actions .btn.blaze {
+  .editor-actions .btn.blaze,
+  .editor-actions .tip {
     order: 1;
   }
-  /* Hint sits right under the publish button on mobile, left-aligned. */
-  .editor-actions .publish-hint {
-    order: 2;
-    text-align: center;
+  .editor-actions .tip {
+    display: flex;
+  }
+  .editor-actions .tip .btn {
+    width: 100%;
+  }
+  /* No hover on touch — tap the button to toggle the tooltip (data-open). */
+  .tip-bubble {
+    max-width: min(250px, calc(100vw - 2rem));
   }
   .editor-actions .btn.ghost {
     order: 3;
@@ -1040,13 +1148,36 @@ textarea {
     justify-items: center;
     text-align: center;
   }
+  /* No room to float on mobile — flow the actions above the QR, full width. */
+  .ticket-actions {
+    position: static;
+    margin-bottom: 1.1rem;
+    flex-wrap: wrap;
+  }
+  .ticket-actions .btn {
+    flex: 1;
+    justify-content: center;
+  }
+  /* Info tooltip: like the publish button — a compact bubble anchored to the
+     row's right edge so it grows leftward and never clips off-screen. */
+  .tie-head {
+    position: relative;
+  }
+  .tie-head .tip {
+    position: static;
+  }
+  .tie-head .tip-bubble {
+    left: auto;
+    right: 0;
+  }
 }
 
 /* ===================================================================
    PRINT — one question per A4, app chrome hidden
    =================================================================== */
 @media screen {
-  .print-only {
+  .print-only,
+  .talong-only {
     display: none;
   }
 }
@@ -1116,5 +1247,89 @@ textarea {
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: #000;
+  }
+
+  /* Default print path shows the question sheets; talonger stay hidden. */
+  .talong-only {
+    display: none;
+  }
+  /* The talonger button toggles this class to swap which block prints. */
+  body.print-talonger .print-only {
+    display: none;
+  }
+  body.print-talonger .talong-only {
+    display: block;
+  }
+
+  /* Landscape page just for the answer slips. */
+  @page talong {
+    size: A4 landscape;
+    margin: 12mm;
+  }
+  .talong-page {
+    page: talong;
+    display: flex;
+    gap: 7mm;
+    color: #000;
+  }
+  .talong {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    border: 1.5px solid #000;
+    padding: 6mm;
+  }
+  /* Title left, name field right — same row, no divider. */
+  .talong-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6mm;
+    margin-bottom: 3mm;
+  }
+  .talong-title {
+    font-family: var(--display);
+    font-size: 15pt;
+    line-height: 1.1;
+  }
+  .talong-name {
+    font-family: var(--mono);
+    font-size: 10pt;
+  }
+  /* Single compact column, centered in the slip. The mark box scales with the
+     question count so any count fits the landscape page; --talong-count comes
+     from the component. */
+  .talong-table {
+    border-collapse: collapse;
+    margin: 0 auto;
+    --talong-box: min(10mm, calc(150mm / var(--talong-count, 1) - 1.5mm));
+  }
+  .talong-colhead,
+  .talong-num {
+    font-family: var(--mono);
+    font-size: 10pt;
+    font-weight: 500;
+    padding: 0.6mm 3mm;
+  }
+  .talong-colhead {
+    text-align: center;
+    width: var(--talong-box);
+  }
+  .talong-num {
+    text-align: right;
+    white-space: nowrap;
+  }
+  .talong-cell {
+    width: var(--talong-box);
+    height: var(--talong-box);
+    border: 1px solid #000;
+  }
+  .talong-tie {
+    margin-top: 5mm;
+    font-family: var(--mono);
+    font-size: 10pt;
+    display: flex;
+    align-items: baseline;
+    gap: 3mm;
   }
 }

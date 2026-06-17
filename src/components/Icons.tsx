@@ -23,6 +23,16 @@ export function PlusIcon({ size = 18 }: IconProps) {
   );
 }
 
+export function HomeIcon({ size = 18 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <path d="M2.5 11.5 12 3.5l9.5 8" />
+      <path d="M5 10.2V20h14v-9.8" />
+      <path d="M10 20v-5h4v5" />
+    </svg>
+  );
+}
+
 export function ShareIcon({ size = 18 }: IconProps) {
   return (
     <svg {...base(size)}>
@@ -41,6 +51,16 @@ export function UploadIcon({ size = 18 }: IconProps) {
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
       <polyline points="17 8 12 3 7 8" />
       <line x1="12" y1="3" x2="12" y2="15" />
+    </svg>
+  );
+}
+
+export function InfoIcon({ size = 18 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <circle cx="12" cy="12" r="9" />
+      <line x1="12" y1="11" x2="12" y2="16.5" />
+      <circle cx="12" cy="7.8" r="0.6" fill="currentColor" stroke="none" />
     </svg>
   );
 }
@@ -123,6 +143,14 @@ export function EyeIcon({ size = 18 }: IconProps) {
     <svg {...base(size)}>
       <path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12Z" />
       <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+export function ChevronIcon({ size = 16 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <polyline points="6 9 12 15 18 9" />
     </svg>
   );
 }

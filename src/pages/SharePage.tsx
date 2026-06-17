@@ -3,7 +3,9 @@ import { Link, useParams } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { storage } from "../storage";
 import { PrintSheets } from "../components/PrintSheets";
-import { TrophyIcon, PrinterIcon } from "../components/Icons";
+import { TalongSheets } from "../components/TalongSheets";
+import { PrintMenu } from "../components/PrintMenu";
+import { TrophyIcon } from "../components/Icons";
 import type { Walk } from "../types";
 
 export default function SharePage() {
@@ -51,11 +53,7 @@ export default function SharePage() {
           <Link to={`/walk/${walk.id}/leaderboard`} className="btn ghost sm">
             <TrophyIcon size={16} /> Topplista
           </Link>
-          {walk.settings.printable && (
-            <button className="btn ghost sm" onClick={() => window.print()}>
-              <PrinterIcon size={16} /> Skriv ut frågor
-            </button>
-          )}
+          {walk.settings.printable && <PrintMenu />}
         </div>
         <div className="share-grid">
           <div className="qr-frame">
@@ -81,6 +79,7 @@ export default function SharePage() {
       </p>
     </main>
     {walk.settings.printable && <PrintSheets walk={walk} />}
+    {walk.settings.printable && <TalongSheets walk={walk} />}
     </>
   );
 }
