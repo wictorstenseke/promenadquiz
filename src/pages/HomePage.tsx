@@ -115,6 +115,14 @@ export default function HomePage() {
                   <span className="muted" style={{ fontSize: "0.85rem" }}>
                     {w.questions.length} frågor
                   </span>
+                  {w.status === "published" && submissions[w.id] > 0 && (
+                    <span
+                      className="muted svar-inline"
+                      style={{ fontSize: "0.85rem" }}
+                    >
+                      · {submissions[w.id]} svar
+                    </span>
+                  )}
                 </div>
                 <h3>{w.title || "Namnlös promenad"}</h3>
               </div>

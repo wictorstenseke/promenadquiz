@@ -710,6 +710,11 @@ input[type="text"].title-input {
   transform: translate(0, 0);
   box-shadow: 4px 4px 0 var(--forest-deep);
 }
+/* Inline "svar" count only on mobile; desktop uses the leaderboard button. */
+.svar-inline {
+  display: none;
+}
+
 .walk-row-actions {
   display: flex;
   align-items: center;
@@ -1169,6 +1174,9 @@ input[type="text"].title-input {
   /* Too tight on mobile — hide the leaderboard button entirely. */
   .walk-row-actions .btn.sm {
     display: none;
+  }
+  .svar-inline {
+    display: inline;
   }
   /* Banner actions drop below the text on narrow screens. */
   .banner {

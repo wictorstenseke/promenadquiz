@@ -33,9 +33,12 @@ if (firebaseEnabled) {
   app = initializeApp(config);
   // On mobile networks / proxies the default WebChannel stream often fails and
   // the SDK stalls ~10-15s before falling back to long-polling — which showed
-  // up as a very slow submit. Auto-detect long-polling so it switches up front.
+  // up as a very slow submit. Auto-detect was unreliable on Safari (the stall
+  // is on the first WRITE stream, which auto-detect's read-path probe misses),
+  // so force long-polling up front. Trade-off: slightly less efficient than a
+  // working WebChannel, but reliable across Safari/proxies and no stall.
   firestore = initializeFirestore(app, {
-    experimentalAutoDetectLongPolling: true,
+    experimentalForceLongPolling: true,
   });
   authInstance = getAuth(app);
 }
