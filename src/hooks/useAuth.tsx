@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { onAuthChange, signOut as authSignOut, type AuthUser } from "../auth";
 import { storage } from "../storage";
 
@@ -17,14 +17,21 @@ const AuthContext = createContext<AuthState>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  // onAuthChange fires on initial restore AND on token refreshes; adopt only
+  // once per uid so we don't re-issue cloud writes on every callback.
+  const adoptedUid = useRef<string | null>(null);
 
   useEffect(
     () =>
       onAuthChange((u) => {
         setUser(u);
         setLoading(false);
-        // Claim any unowned local walks for this account so they cross devices.
-        if (u) void storage.adoptLocalWalks(u.uid);
+        if (u && adoptedUid.current !== u.uid) {
+          adoptedUid.current = u.uid;
+          // Claim any unowned local walks for this account so they cross devices.
+          void storage.adoptLocalWalks(u.uid);
+        }
+        if (!u) adoptedUid.current = null;
       }),
     [],
   );
