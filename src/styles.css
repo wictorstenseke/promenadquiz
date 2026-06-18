@@ -424,6 +424,8 @@ button {
 }
 input[type="text"],
 input[type="number"],
+input[type="email"],
+input[type="password"],
 textarea {
   font-family: inherit;
   font-size: 1rem;
@@ -1432,6 +1434,47 @@ input[type="text"].title-input {
 .field-error {
   margin: 0;
   color: var(--blaze-deep);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.pw-field {
+  position: relative;
+}
+.pw-field input {
+  padding-right: 4.2rem;
+}
+.pw-field .pw-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--forest);
+  cursor: pointer;
+  padding: 0.3rem 0.4rem;
+}
+.auth-alt {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-top: 0.9rem;
+  font-size: 0.9rem;
+}
+.auth-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--forest);
+  font-weight: 700;
+  font-size: inherit;
+  cursor: pointer;
+}
+.auth-notice {
+  margin: 0;
+  color: var(--forest);
   font-size: 0.9rem;
   font-weight: 600;
 }
