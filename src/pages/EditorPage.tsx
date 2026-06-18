@@ -7,6 +7,7 @@ import { Toggle } from "../components/Switch";
 import { ConfirmSheet } from "../components/ConfirmSheet";
 import { EyeIcon, PlusIcon, ShareIcon, UploadIcon, InfoIcon } from "../components/Icons";
 import { OPTION_KEYS, type OptionKey, type Question, type Walk } from "../types";
+import { useAuth } from "../hooks/useAuth";
 
 type SaveState = "idle" | "saving" | "saved";
 
@@ -14,6 +15,7 @@ export default function EditorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, loading: authLoading } = useAuth();
   const [walk, setWalk] = useState<Walk | null>(null);
   const [missing, setMissing] = useState(false);
   const [, setSave] = useState<SaveState>("idle");
@@ -88,7 +90,28 @@ export default function EditorPage() {
       </main>
     );
   }
-  if (!walk) return <main className="page muted">Laddar…</main>;
+  // Owner guard: a walk claimed by an account is editable only by that account.
+  // Anonymous walks (no ownerId) stay open, matching the Firestore rules. Wait
+  // for auth to resolve so the real owner isn't denied during the async restore.
+  const ownedByOther =
+    !!walk && !!walk.ownerId && (!user || user.uid !== walk.ownerId);
+  if (walk && ownedByOther && !authLoading) {
+    return (
+      <main className="page">
+        <h1 className="display-xl">Inte din promenad</h1>
+        <p className="lede">
+          Den här promenaden tillhör ett annat konto. Bara ägaren kan redigera
+          den.
+        </p>
+        <Link to="/" className="btn">
+          ← Till mina promenader
+        </Link>
+      </main>
+    );
+  }
+  if (!walk || (ownedByOther && authLoading)) {
+    return <main className="page muted">Laddar…</main>;
+  }
 
   const setQ = (qid: string, patch: Partial<Question>) =>
     update((w) => ({
