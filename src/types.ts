@@ -56,6 +56,12 @@ export interface Walk extends WalkContent {
    * edits stay invisible to players until copied into this snapshot.
    */
   publishedSnapshot?: WalkContent;
+  /** Firebase Auth uid of the organiser who claimed this walk. Absent on
+   *  anonymous walks created while signed out. */
+  ownerId?: string;
+  /** Epoch ms, bumped on every save. Drives last-write-wins when the same id
+   *  exists both locally and in the cloud. Missing is treated as 0. */
+  updatedAt?: number;
 }
 
 export interface Submission {
