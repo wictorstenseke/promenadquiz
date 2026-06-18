@@ -1,4 +1,5 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
+import { getAuth, type Auth } from "firebase/auth";
 import {
   initializeFirestore,
   type Firestore,
@@ -26,6 +27,7 @@ export const firebaseEnabled = Boolean(config.apiKey && config.projectId);
 
 let app: FirebaseApp | undefined;
 let firestore: Firestore | undefined;
+let authInstance: Auth | undefined;
 
 if (firebaseEnabled) {
   app = initializeApp(config);
@@ -35,7 +37,11 @@ if (firebaseEnabled) {
   firestore = initializeFirestore(app, {
     experimentalAutoDetectLongPolling: true,
   });
+  authInstance = getAuth(app);
 }
 
 /** Firestore instance, or null when no config is present. */
 export const db: Firestore | null = firestore ?? null;
+
+/** Firebase Auth instance, or null when no config is present. */
+export const auth: Auth | null = authInstance ?? null;

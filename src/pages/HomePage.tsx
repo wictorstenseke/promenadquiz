@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 import { storage } from "../storage";
 import { newWalk } from "../lib/factory";
 import { shortId, uid } from "../lib/id";
@@ -15,6 +16,7 @@ export default function HomePage() {
   const [menuFor, setMenuFor] = useState<string | null>(null);
   const [joinOpen, setJoinOpen] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     storage.listWalks().then(async (list) => {
@@ -27,7 +29,7 @@ export default function HomePage() {
       );
       setSubmissions(Object.fromEntries(counts));
     });
-  }, []);
+  }, [user]);
 
   function create() {
     // Don't persist yet — the walk is saved on the first edit (see EditorPage).

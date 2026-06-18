@@ -10,7 +10,7 @@ import {
   type Firestore,
 } from "firebase/firestore";
 import type { Submission, Walk } from "../types";
-import type { LeaderboardEntry, Storage } from "./Storage";
+import type { LeaderboardEntry, RemoteStorage } from "./Storage";
 
 const WALKS = "walks";
 const SUBMISSIONS = "submissions";
@@ -31,7 +31,7 @@ function plain<T>(value: T): T {
  * accounts there's no per-user query, so those stay device-local (see
  * HybridStorage). listWalks here returns nothing on purpose.
  */
-export class FirestoreStorage implements Storage {
+export class FirestoreStorage implements RemoteStorage {
   constructor(private db: Firestore) {}
 
   async listWalks(): Promise<Walk[]> {
@@ -54,6 +54,13 @@ export class FirestoreStorage implements Storage {
 
   async saveSubmission(submission: Submission): Promise<void> {
     await setDoc(doc(this.db, SUBMISSIONS, submission.id), plain(submission));
+  }
+
+  /** Walks owned by a signed-in organiser, for cross-device "my walks". */
+  async listWalksByOwner(uid: string): Promise<Walk[]> {
+    const q = query(collection(this.db, WALKS), where("ownerId", "==", uid));
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => d.data() as Walk);
   }
 
   async getLeaderboard(walkId: string): Promise<LeaderboardEntry[]> {

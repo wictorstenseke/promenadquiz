@@ -23,3 +23,8 @@ export interface Storage {
   /** Sorted: highest score first, earliest finish breaks ties. */
   getLeaderboard(walkId: string): Promise<LeaderboardEntry[]>;
 }
+
+/** A backend that can list a single owner's walks (needs identity). */
+export interface RemoteStorage extends Storage {
+  listWalksByOwner(uid: string): Promise<Walk[]>;
+}
