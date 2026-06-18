@@ -1,11 +1,13 @@
 import { HybridStorage } from "./HybridStorage";
-import type { Storage } from "./Storage";
+import { currentUser } from "../auth";
 
 /**
  * The one place the backend is chosen. HybridStorage keeps drafts on-device and
- * pushes published walks + submissions to Firestore; it degrades to pure
+ * syncs the signed-in user's walks to Firestore; it degrades to pure
  * localStorage when no Firebase config is present.
  */
-export const storage: Storage = new HybridStorage();
+export const storage = new HybridStorage({
+  getUid: () => currentUser()?.uid ?? null,
+});
 
 export type { Storage, LeaderboardEntry } from "./Storage";
