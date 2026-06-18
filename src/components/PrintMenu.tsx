@@ -43,7 +43,7 @@ export function PrintMenu() {
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <PrinterIcon size={16} /> Skriv ut <ChevronIcon size={14} />
+        <PrinterIcon size={16} /> Skriv ut (beta) <ChevronIcon size={14} />
       </button>
       {open && (
         <div className="print-menu-pop" role="menu">
