@@ -104,7 +104,18 @@ export function AuthSheet({ open, onClose, initialMode = "signin" }: Props) {
 
         {mode !== "reset" && (
           <div className="field">
-            <label htmlFor="auth-pw">Lösenord</label>
+            <div className="field-label-row">
+              <label htmlFor="auth-pw">Lösenord</label>
+              {mode === "signin" && (
+                <button
+                  type="button"
+                  className="auth-link"
+                  onClick={() => go("reset")}
+                >
+                  Glömt lösenord?
+                </button>
+              )}
+            </div>
             <div className="pw-field">
               <input
                 id="auth-pw"
@@ -149,19 +160,20 @@ export function AuthSheet({ open, onClose, initialMode = "signin" }: Props) {
 
       <div className="auth-alt">
         {mode === "signin" && (
-          <>
-            <button type="button" className="auth-link" onClick={() => go("reset")}>
-              Glömt lösenord?
-            </button>
+          <span className="auth-alt-prompt">
+            Inget konto?{" "}
             <button type="button" className="auth-link" onClick={() => go("signup")}>
-              Skapa konto
+              Skapa konto här
             </button>
-          </>
+          </span>
         )}
         {mode === "signup" && (
-          <button type="button" className="auth-link" onClick={() => go("signin")}>
-            Har du redan ett konto? Logga in
-          </button>
+          <span className="auth-alt-prompt">
+            Har du redan ett konto?{" "}
+            <button type="button" className="auth-link" onClick={() => go("signin")}>
+              Logga in
+            </button>
+          </span>
         )}
         {mode === "reset" && (
           <button type="button" className="auth-link" onClick={() => go("signin")}>

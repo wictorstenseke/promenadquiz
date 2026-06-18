@@ -1458,19 +1458,35 @@ input[type="text"].title-input {
 }
 .auth-alt {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   gap: 0.8rem;
   margin-top: 0.9rem;
   font-size: 0.9rem;
+}
+.auth-alt-prompt {
+  color: var(--ink-soft);
+}
+/* Label + "Glömt lösenord?" on one baseline-aligned row above the input. */
+.field-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+.field-label-row .auth-link {
+  font-size: 0.82rem;
 }
 .auth-link {
   background: none;
   border: none;
   padding: 0;
-  color: var(--forest);
+  color: var(--blaze-deep);
   font-weight: 700;
   font-size: inherit;
   cursor: pointer;
+}
+.auth-link:hover {
+  text-decoration: underline;
 }
 .auth-notice {
   margin: 0;
