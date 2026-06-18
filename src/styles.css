@@ -1478,3 +1478,23 @@ input[type="text"].title-input {
   font-size: 0.9rem;
   font-weight: 600;
 }
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.topbar-email {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  max-width: 11rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 520px) {
+  .topbar-email {
+    display: none;
+  }
+}
