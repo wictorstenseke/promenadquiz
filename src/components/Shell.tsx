@@ -1,7 +1,15 @@
-import { Link, Outlet } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { HomeIcon } from "./Icons";
 
 export function Shell() {
+  // Router keeps scroll position across navigations; reset to top on each route
+  // change so a new page renders from the top, not wherever the last one sat.
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
   return (
     <div className="shell">
       <header className="topbar no-print">

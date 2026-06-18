@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { storage } from "../storage";
 import { newWalk } from "../lib/factory";
 import { shortId, uid } from "../lib/id";
-import { PlusIcon, MoreIcon, EnterIcon } from "../components/Icons";
+import { PlusIcon, MoreIcon, EnterIcon, TrophyIcon } from "../components/Icons";
 import { WalkActionsSheet } from "../components/WalkActionsSheet";
 import { JoinSheet } from "../components/JoinSheet";
 import type { Walk } from "../types";
@@ -113,25 +113,35 @@ export default function HomePage() {
                   <span className="muted" style={{ fontSize: "0.85rem" }}>
                     {w.questions.length} frågor
                   </span>
-                  {w.status === "published" && submissions[w.id] > 0 && (
-                    <span className="muted" style={{ fontSize: "0.85rem" }}>
-                      · {submissions[w.id]} svar
-                    </span>
-                  )}
                 </div>
                 <h3>{w.title || "Namnlös promenad"}</h3>
               </div>
-              <button
-                className="icon-btn"
-                aria-label="Fler val"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setMenuFor(w.id);
-                }}
-              >
-                <MoreIcon />
-              </button>
+              <div className="walk-row-actions">
+                {w.status === "published" && submissions[w.id] > 0 && (
+                  <button
+                    className="btn sm"
+                    title="Visa topplistan"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      navigate(`/walk/${w.id}/leaderboard`);
+                    }}
+                  >
+                    <TrophyIcon size={15} /> {submissions[w.id]} svar
+                  </button>
+                )}
+                <button
+                  className="icon-btn"
+                  aria-label="Fler val"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setMenuFor(w.id);
+                  }}
+                >
+                  <MoreIcon />
+                </button>
+              </div>
             </Link>
           ))}
         </div>

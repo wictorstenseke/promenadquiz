@@ -566,7 +566,11 @@ input[type="text"].title-input {
   display: flex;
   flex-direction: column;
   gap: 2.8rem;
-  margin-top: 2.8rem;
+  margin-top: 0;
+}
+/* Tight to the top when alone, but keep a gap below a banner when one shows. */
+.banner + .editor-sections {
+  margin-top: 2.2rem;
 }
 .editor-section {
   display: flex;
@@ -704,6 +708,15 @@ input[type="text"].title-input {
   transform: translate(0, 0);
   box-shadow: 4px 4px 0 var(--forest-deep);
 }
+.walk-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+.walk-row-actions .btn.sm {
+  white-space: nowrap;
+}
 .icon-btn {
   flex-shrink: 0;
   display: grid;
@@ -746,7 +759,8 @@ input[type="text"].title-input {
   justify-content: space-between;
   gap: 1rem;
   padding: 0.9rem 1.1rem;
-  margin-top: 1.2rem;
+  /* Tighten the gap to the page top; bottom gap comes from the sibling rule. */
+  margin-top: -0.8rem;
   border-radius: var(--r);
   border: 1.6px solid var(--ink);
   background: color-mix(in oklab, var(--paper), white 24%);
@@ -787,6 +801,13 @@ input[type="text"].title-input {
 .banner.info {
   border-color: var(--forest);
   background: color-mix(in oklab, var(--paper), var(--forest) 9%);
+}
+/* Warn banner that also carries the unpublished-changes actions:
+   lay text and buttons side by side like the info banner. */
+.banner.warn.stacked {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 /* ---------- participant play ---------- */
@@ -1142,6 +1163,21 @@ input[type="text"].title-input {
   /* Top-right nav collapses to a bare home icon on mobile. */
   .nav-home-label {
     display: none;
+  }
+  /* Too tight on mobile — hide the leaderboard button entirely. */
+  .walk-row-actions .btn.sm {
+    display: none;
+  }
+  /* Banner actions drop below the text on narrow screens. */
+  .banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .banner.warn.stacked {
+    align-items: stretch;
+  }
+  .banner > .row {
+    justify-content: flex-end;
   }
   .editor-actions {
     flex-direction: column;

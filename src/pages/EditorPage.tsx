@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { storage } from "../storage";
 import { newQuestion } from "../lib/factory";
-import { hasPendingChanges, walkContent } from "../lib/walk";
+import { hasPendingChanges, liveWalk, walkContent } from "../lib/walk";
 import { Toggle } from "../components/Switch";
 import { ConfirmSheet } from "../components/ConfirmSheet";
 import { EyeIcon, PlusIcon, ShareIcon, UploadIcon, InfoIcon } from "../components/Icons";
@@ -143,6 +143,16 @@ export default function EditorPage() {
     if (firstPublish) navigate(`/walk/${walk!.id}/share`);
   }
 
+  // Throw away unpublished edits: restore the draft to the live published
+  // snapshot. Persist synchronously so a queued debounced save can't resurrect
+  // the discarded edits.
+  async function discard() {
+    window.clearTimeout(timer.current);
+    const next = liveWalk(walk!);
+    setWalk(next);
+    await storage.saveWalk(next);
+  }
+
   const canPublish =
     walk.title.trim().length > 0 &&
     walk.questions.length > 0 &&
@@ -154,6 +164,17 @@ export default function EditorPage() {
 
   // Published walk whose draft no longer matches the live snapshot.
   const dirty = hasPendingChanges(walk);
+
+  const dirtyActions = (
+    <div className="row" style={{ gap: "0.5rem", flexWrap: "nowrap" }}>
+      <button className="btn sm ghost" onClick={discard}>
+        Ångra ändringar
+      </button>
+      <button className="btn sm blaze" onClick={publish} disabled={!canPublish}>
+        <UploadIcon size={15} /> Uppdatera
+      </button>
+    </div>
+  );
 
   return (
     <main className="page">
@@ -172,17 +193,34 @@ export default function EditorPage() {
         </div>
       )}
       {locked && editUnlocked && (
-        <div className="banner warn">
-          <div>
-            <strong>⚠️ Redigeringsläge</strong>
-            <p>
-              {submissionCount} inlämningar finns. Var försiktig: ändra inte
-              innebörd eller rätt svar, annars blir topplistan ogiltig.
-            </p>
-          </div>
+        <div className="banner warn stacked">
+          {dirty ? (
+            <div>
+              <strong>⚠️ Ändringar är inte publicerade</strong>
+              <p>
+                Deltagare ser fortfarande den tidigare versionen tills du
+                uppdaterar. Samma länk och QR-kod.
+              </p>
+            </div>
+          ) : (
+            <div>
+              <strong>⚠️ Redigeringsläge</strong>
+              <p>
+                {submissionCount} inlämningar finns. Var försiktig: ändra inte
+                innebörd eller rätt svar, annars blir topplistan ogiltig.
+              </p>
+            </div>
+          )}
+          {dirty ? (
+            dirtyActions
+          ) : (
+            <button className="btn sm" onClick={() => setEditUnlocked(false)}>
+              Avbryt
+            </button>
+          )}
         </div>
       )}
-      {dirty && (
+      {dirty && !(locked && editUnlocked) && (
         <div className="banner info">
           <div>
             <strong>Ändringar är inte publicerade</strong>
@@ -191,9 +229,7 @@ export default function EditorPage() {
               uppdaterar. Samma länk och QR-kod.
             </p>
           </div>
-          <button className="btn sm blaze" onClick={publish} disabled={!canPublish}>
-            <UploadIcon size={15} /> Uppdatera
-          </button>
+          {dirtyActions}
         </div>
       )}
 
@@ -314,26 +350,21 @@ export default function EditorPage() {
                   data-correct={q.correct === k}
                   style={{ cursor: "default" }}
                 >
-                  <div
-                    className="row"
-                    style={{ gap: "0.7rem", alignItems: "center" }}
+                  <span className="key-inline">{k}</span>
+                  <input
+                    type="text"
+                    value={q.options[k]}
+                    placeholder={`Svar ${k}`}
+                    onChange={(e) => setOpt(q.id, k, e.target.value)}
+                    style={{ flex: 1, minWidth: 0 }}
+                  />
+                  <button
+                    className="correct-toggle"
+                    data-on={q.correct === k}
+                    onClick={() => setQ(q.id, { correct: k })}
                   >
-                    <span className="key-inline">{k}</span>
-                    <input
-                      type="text"
-                      value={q.options[k]}
-                      placeholder={`Svar ${k}`}
-                      onChange={(e) => setOpt(q.id, k, e.target.value)}
-                      style={{ flex: 1 }}
-                    />
-                    <button
-                      className="correct-toggle"
-                      data-on={q.correct === k}
-                      onClick={() => setQ(q.id, { correct: k })}
-                    >
-                      {q.correct === k ? "Rätt svar" : "Sätt rätt"}
-                    </button>
-                  </div>
+                    {q.correct === k ? "Rätt svar" : "Sätt rätt"}
+                  </button>
                 </div>
               ))}
             </div>
@@ -446,6 +477,11 @@ export default function EditorPage() {
             <Link to={`/walk/${walk.id}/share`} className="btn ghost">
               <ShareIcon /> {walk.settings.printable ? "Dela & skriv ut" : "Delningslänk & QR"}
             </Link>
+          )}
+          {walk.status === "published" && dirty && (
+            <button className="btn ghost" onClick={discard}>
+              Ångra ändringar
+            </button>
           )}
           <span
             className="tip"
