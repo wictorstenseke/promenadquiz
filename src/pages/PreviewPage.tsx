@@ -24,7 +24,7 @@ export default function PreviewPage() {
     <>
     <main className="page no-print">
       <div className="row between">
-        <Link to={`/walk/${walk.id}/edit`} className="linkbtn">
+        <Link to={`/walk/${walk.id}/edit`} className="btn ghost sm">
           ← Tillbaka till redigering
         </Link>
         {walk.settings.printable && <PrintMenu />}

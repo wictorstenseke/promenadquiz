@@ -31,6 +31,8 @@ export interface WalkSettings {
 
 export interface Tiebreaker {
   question: string;
+  /** Optional correct answer, shown on the leaderboard to judge closeness. */
+  answer?: string;
 }
 
 /** The editable, participant-visible content of a walk. */

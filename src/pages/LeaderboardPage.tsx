@@ -56,6 +56,7 @@ function LeaderboardBody({
   walk: Walk | null;
   board: LeaderboardEntry[] | null;
 }) {
+  const tie = walk?.tiebreaker;
   return (
     <>
       <p className="eyebrow" style={{ marginTop: "1.2rem" }}>
@@ -64,6 +65,21 @@ function LeaderboardBody({
       <h1 className="display-xl" style={{ fontSize: "clamp(2.2rem,7vw,3.6rem)" }}>
         {walk?.title ?? "Promenad"}
       </h1>
+
+      {tie?.question && (
+        <div className="tie-banner">
+          <div className="tie-banner-main">
+            <span className="tie-banner-label">Utslagsfråga</span>
+            <span className="tie-banner-q">{tie.question}</span>
+          </div>
+          {tie.answer && (
+            <div className="tie-banner-ans">
+              <span className="tie-banner-ans-label">Rätt svar</span>
+              <span className="tie-banner-ans-val">{tie.answer}</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {!board ? (
         <p className="muted">Laddar…</p>
@@ -82,17 +98,21 @@ function LeaderboardBody({
                 {e.submission.participantName}
               </span>
               <span className="pts">
-                {e.submission.score}/{e.submission.total}
+                <span className="pts-line">
+                  <span className="pts-key">Poäng:</span>{" "}
+                  {e.submission.score}/{e.submission.total}
+                </span>
+                {tie?.question && (
+                  <span className="pts-line">
+                    <span className="pts-key">Utslagsfråga:</span>{" "}
+                    {e.submission.tiebreakerAnswer?.trim() || "—"}
+                  </span>
+                )}
               </span>
             </div>
           ))}
         </div>
       )}
-
-      <p className="muted" style={{ marginTop: "1.6rem", fontSize: "0.9rem" }}>
-        Topplistan visar inlämningar från den här webbläsaren. Gemensam topplista
-        mellan enheter kommer med Firebase.
-      </p>
     </>
   );
 }

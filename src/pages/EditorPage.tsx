@@ -25,6 +25,7 @@ export default function EditorPage() {
   const [confirmEdit, setConfirmEdit] = useState(false);
   const [tipOpen, setTipOpen] = useState(false);
   const [tieTipOpen, setTieTipOpen] = useState(false);
+  const [answerOn, setAnswerOn] = useState(false);
   const timer = useRef<number>();
 
   useEffect(() => {
@@ -196,7 +197,9 @@ export default function EditorPage() {
         </div>
       )}
 
-      <h2 style={{ fontSize: "1.5rem", marginTop: "1.6rem" }}>Inställningar</h2>
+      <div className="editor-sections">
+      <section className="editor-section">
+      <h2 style={{ fontSize: "1.5rem" }}>Inställningar</h2>
 
       <div className="card" style={{ marginTop: "1.2rem" }}>
         <div className="field">
@@ -257,9 +260,9 @@ export default function EditorPage() {
         />
         </div>
       </div>
+      </section>
 
-      <hr className="divider" />
-
+      <section className="editor-section">
       <div className="row between">
         <h2 style={{ fontSize: "1.5rem" }}>Frågor</h2>
         <span className="pill">{walk.questions.length} st</span>
@@ -349,11 +352,12 @@ export default function EditorPage() {
           <PlusIcon /> Lägg till fråga
         </button>
       </div>
+      </section>
 
       {walk.settings.includeTiebreaker && (
         <>
-          <hr className="divider" />
-
+        <hr className="divider editor-divider" />
+        <section className="editor-section">
           <div className="row tie-head" style={{ gap: "0.5rem", marginBottom: "1rem" }}>
             <h2 style={{ fontSize: "1.5rem" }}>Utslagsfråga</h2>
             <span
@@ -375,24 +379,63 @@ export default function EditorPage() {
               </span>
             </span>
           </div>
-          <div className="field">
-            <textarea
-              value={walk.tiebreaker?.question ?? ""}
-              placeholder="T.ex. Hur många kottar finns i korgen?"
-              onChange={(e) =>
-                update((w) => ({
-                  ...w,
-                  tiebreaker: e.target.value.trim()
-                    ? { question: e.target.value }
-                    : undefined,
-                }))
-              }
+          <div className="card">
+            <div className="field">
+              <label>Fråga</label>
+              <textarea
+                value={walk.tiebreaker?.question ?? ""}
+                placeholder="T.ex. Hur många kottar finns i korgen?"
+                onChange={(e) =>
+                  update((w) => ({
+                    ...w,
+                    tiebreaker: e.target.value.trim()
+                      ? { ...w.tiebreaker, question: e.target.value }
+                      : undefined,
+                  }))
+                }
+              />
+            </div>
+            <Toggle
+              on={answerOn || !!walk.tiebreaker?.answer}
+              onChange={(v) => {
+                setAnswerOn(v);
+                if (!v)
+                  update((w) =>
+                    w.tiebreaker
+                      ? { ...w, tiebreaker: { question: w.tiebreaker.question } }
+                      : w,
+                  );
+              }}
+              title="Ange rätt svar"
+              hint="Visas på topplistan så du ser vem som är närmast."
             />
+            {(answerOn || !!walk.tiebreaker?.answer) && (
+              <div className="field" style={{ marginTop: "0.8rem", marginBottom: 0 }}>
+                <label>Rätt svar</label>
+                <input
+                  type="text"
+                  value={walk.tiebreaker?.answer ?? ""}
+                  placeholder="T.ex. 47"
+                  disabled={!walk.tiebreaker?.question}
+                  onChange={(e) =>
+                    update((w) => ({
+                      ...w,
+                      tiebreaker: {
+                        question: w.tiebreaker?.question ?? "",
+                        answer: e.target.value.trim() || undefined,
+                      },
+                    }))
+                  }
+                />
+              </div>
+            )}
           </div>
+        </section>
         </>
       )}
+      </div>
 
-      <hr className="divider" />
+      <hr className="divider editor-divider" />
 
       <div className="stack" style={{ gap: "0.7rem" }}>
         <div className="editor-actions">

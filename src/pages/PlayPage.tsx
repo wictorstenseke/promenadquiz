@@ -280,16 +280,14 @@ export default function PlayPage() {
         )}
       </div>
 
-      <div className="nav-arrows">
+      <div className="play-nav">
         <button
-          className="arrow"
-          aria-label="Föregående"
+          className="btn ghost"
           disabled={index === 0}
           onClick={() => setIndex((i) => Math.max(0, i - 1))}
         >
-          ←
+          ← Bakåt
         </button>
-
         {isLast ? (
           <button className="btn blaze" onClick={submit}>
             Lämna in ({answeredCount}/{walk.questions.length})
@@ -301,37 +299,6 @@ export default function PlayPage() {
           >
             Nästa →
           </button>
-        )}
-
-        <button
-          className="arrow"
-          aria-label="Nästa"
-          disabled={isLast}
-          onClick={() => setIndex((i) => Math.min(steps - 1, i + 1))}
-        >
-          →
-        </button>
-      </div>
-
-      <div className="station-dots">
-        {walk.questions.map((qq, i) => (
-          <button
-            key={qq.id}
-            className="dot"
-            aria-label={`Fråga ${qq.stationNumber}`}
-            data-answered={!!answers[qq.id]}
-            data-current={i === index}
-            onClick={() => setIndex(i)}
-          />
-        ))}
-        {hasTiebreak && (
-          <button
-            className="dot"
-            aria-label="Utslagsfråga"
-            data-answered={!!tiebreak.trim()}
-            data-current={onTiebreak}
-            onClick={() => setIndex(walk.questions.length)}
-          />
         )}
       </div>
 
