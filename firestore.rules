@@ -1,25 +1,30 @@
 rules_version = '2';
 
-// POC rules: NO accounts. Anyone with a walk id can read it, and — accepted
-// risk for now — anyone can create/overwrite a published walk. Tighten with an
-// owner guard (Firebase Auth + ownerId) before this is used for real.
+// Optional accounts. A walk with no ownerId is anonymous and stays world-
+// writable (accepted risk, scoped to unclaimed walks). Once a signed-in user
+// claims it (ownerId set to their uid), only that owner may write it.
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Published walks: world-readable, world-writable (POC only).
     match /walks/{walkId} {
       allow read: if true;
-      allow create, update, delete: if true;
+
+      // Create: anyone. If an ownerId is present it must be the caller's uid.
+      allow create: if !("ownerId" in request.resource.data)
+                    || request.resource.data.ownerId == request.auth.uid;
+
+      // Update/delete: unowned docs stay open; owned docs are owner-only. The
+      // adoption claim (unowned -> ownerId == my uid) is permitted because the
+      // existing resource has no ownerId.
+      allow update, delete: if !("ownerId" in resource.data)
+                            || resource.data.ownerId == request.auth.uid;
     }
 
-    // Participant submissions: append-only. Anyone can add their own result
-    // and read the leaderboard; nobody can edit or delete a submitted score.
+    // Participant submissions: append-only, anonymous. Unchanged.
     match /submissions/{submissionId} {
       allow read: if true;
       allow create: if true;
       allow update, delete: if false;
     }
-
-    // Everything else is denied by default (no catch-all allow).
   }
 }
