@@ -10,6 +10,9 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
+    // Emulator-backed specs run separately (vitest.integration.config.ts) so the
+    // default suite needs no external services.
+    exclude: ["**/node_modules/**", "**/dist/**", "src/**/*.emulator.test.ts"],
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "lcov"],
