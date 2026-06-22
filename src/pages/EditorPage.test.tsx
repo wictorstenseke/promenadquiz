@@ -325,4 +325,36 @@ describe("EditorPage — edit guard with submissions", () => {
     );
     expect(sawBlockedEdit).toBe(false);
   });
+
+  test("a locked walk with unpublished edits shows only the lock banner, not the pending-changes banner too", async () => {
+    // Reopening a published walk that has both submissions AND saved-but-
+    // unpublished edits: editUnlocked resets to false while dirty persists.
+    // The lock banner must own the messaging — the "Ändringar är inte
+    // publicerade" info banner must NOT stack on top of it.
+    getWalk.mockResolvedValue(
+      makeWalk({
+        status: "published",
+        title: "Skogspromenaden (redigerad)",
+        publishedSnapshot: {
+          title: "Skogspromenaden",
+          settings: {
+            showQuestionText: true,
+            printable: true,
+            includeTiebreaker: false,
+            showResults: true,
+          },
+          questions: makeWalk().questions,
+        },
+      }),
+    );
+    getLeaderboard.mockResolvedValue([{ id: "s1" }]);
+    renderEditor();
+
+    expect(
+      await screen.findByText(/1 inlämningar finns redan/),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Ändringar är inte publicerade"),
+    ).not.toBeInTheDocument();
+  });
 });

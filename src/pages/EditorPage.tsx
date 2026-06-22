@@ -243,7 +243,7 @@ export default function EditorPage() {
           )}
         </div>
       )}
-      {dirty && !(locked && editUnlocked) && (
+      {dirty && !locked && (
         <div className="banner info">
           <div>
             <strong>Ändringar är inte publicerade</strong>
