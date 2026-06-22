@@ -1268,7 +1268,8 @@ input[type="text"].title-input {
    =================================================================== */
 @media screen {
   .print-only,
-  .talong-only {
+  .talong-only,
+  .qr-only {
     display: none;
   }
 }
