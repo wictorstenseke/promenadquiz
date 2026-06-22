@@ -5,6 +5,8 @@ import { storage } from "../storage";
 import { PrintSheets } from "../components/PrintSheets";
 import { TalongSheets } from "../components/TalongSheets";
 import { PrintMenu } from "../components/PrintMenu";
+import { QrPoster } from "../components/QrPoster";
+import { playUrl } from "../lib/shareUrl";
 import { TrophyIcon } from "../components/Icons";
 import type { Walk } from "../types";
 
@@ -19,8 +21,8 @@ export default function SharePage() {
 
   if (!walk) return <main className="page muted">Laddar…</main>;
 
-  // HashRouter + GitHub Pages base path: link must be origin + base + "#/p/:id".
-  const url = `${window.location.origin}${import.meta.env.BASE_URL}#/p/${walk.id}`;
+  // HashRouter + GitHub Pages base path: origin + base + "#/p/:id".
+  const url = playUrl(walk.id);
 
   async function copy() {
     await navigator.clipboard.writeText(url);
@@ -53,7 +55,7 @@ export default function SharePage() {
           <Link to={`/walk/${walk.id}/leaderboard`} className="btn ghost sm">
             <TrophyIcon size={16} /> Topplista
           </Link>
-          {walk.settings.printable && <PrintMenu />}
+          <PrintMenu printable={walk.settings.printable} />
         </div>
         <div className="share-grid">
           <div className="qr-frame">
@@ -80,6 +82,7 @@ export default function SharePage() {
     </main>
     {walk.settings.printable && <PrintSheets walk={walk} />}
     {walk.settings.printable && <TalongSheets walk={walk} />}
+    <QrPoster walk={walk} />
     </>
   );
 }
