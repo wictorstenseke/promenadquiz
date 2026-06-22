@@ -1366,6 +1366,19 @@ input[type="text"].title-input {
     display: block;
   }
 
+  /* QR poster: hidden on the default path; its button toggles body.print-qr to
+     swap it in and hide both the question sheets and the talonger. */
+  .qr-only {
+    display: none;
+  }
+  body.print-qr .print-only,
+  body.print-qr .talong-only {
+    display: none;
+  }
+  body.print-qr .qr-only {
+    display: block;
+  }
+
   /* Landscape page just for the answer slips. */
   @page talong {
     size: A4 landscape;
@@ -1436,6 +1449,62 @@ input[type="text"].title-input {
     display: flex;
     align-items: baseline;
     gap: 3mm;
+  }
+
+  /* Single portrait A4 poster, vertically centered. min-height (not height)
+     keeps iOS Safari — which ignores @page size — from spilling to page 2. */
+  .qr-poster {
+    page: auto;
+    min-height: calc(247mm - 36mm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #000;
+    break-inside: avoid;
+  }
+  .qr-poster-title {
+    font-family: var(--display);
+    font-size: 40pt;
+    line-height: 1.05;
+    margin: 0 0 14mm;
+  }
+  .qr-poster-code {
+    line-height: 0;
+  }
+  .qr-poster-prompt {
+    font-family: var(--display);
+    font-size: 22pt;
+    margin: 10mm 0 0;
+  }
+  .qr-poster-fallback {
+    margin-top: 16mm;
+    display: grid;
+    gap: 4mm;
+  }
+  .qr-poster-fallrow {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 4mm;
+  }
+  .qr-poster-falllabel {
+    font-family: var(--mono);
+    font-size: 12pt;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .qr-poster-fallurl {
+    font-family: var(--mono);
+    font-size: 14pt;
+  }
+  .qr-poster-fallcode {
+    font-family: var(--mono);
+    font-size: 24pt;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
   }
 }
 

@@ -4,6 +4,7 @@ import { storage } from "../storage";
 import { PrintSheets } from "../components/PrintSheets";
 import { TalongSheets } from "../components/TalongSheets";
 import { PrintMenu } from "../components/PrintMenu";
+import { QrPoster } from "../components/QrPoster";
 import { OPTION_KEYS, type Walk } from "../types";
 
 export default function PreviewPage() {
@@ -27,7 +28,7 @@ export default function PreviewPage() {
         <Link to={`/walk/${walk.id}/edit`} className="btn ghost sm">
           ← Tillbaka till redigering
         </Link>
-        {walk.settings.printable && <PrintMenu />}
+        <PrintMenu printable={walk.settings.printable} />
       </div>
 
       <p className="eyebrow" style={{ marginTop: "1.4rem" }}>
@@ -80,6 +81,7 @@ export default function PreviewPage() {
     </main>
     {walk.settings.printable && <PrintSheets walk={walk} />}
     {walk.settings.printable && <TalongSheets walk={walk} />}
+    <QrPoster walk={walk} />
     </>
   );
 }
