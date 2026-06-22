@@ -108,8 +108,8 @@ async function pickOption(
 
 // Helper to start a walk past the name gate.
 async function startWalk(user: ReturnType<typeof userEvent.setup>) {
-  // The name field is the only textbox on the name gate (label lacks htmlFor).
-  const input = await screen.findByRole("textbox");
+  // Label is associated via htmlFor, so query by its accessible name.
+  const input = await screen.findByLabelText("Ditt namn");
   await user.type(input, "Anna");
   await user.click(screen.getByRole("button", { name: /Starta promenaden/ }));
 }

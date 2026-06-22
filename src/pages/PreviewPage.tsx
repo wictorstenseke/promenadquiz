@@ -45,7 +45,11 @@ export default function PreviewPage() {
             <div className="row between" style={{ marginBottom: "0.9rem" }}>
               <span className="station-chip">Fråga {i + 1}</span>
             </div>
-            <h2 className="preview-q-text">{q.text || "—"}</h2>
+            {walk.settings.showQuestionText ? (
+              <h2 className="preview-q-text">{q.text || "—"}</h2>
+            ) : (
+              <p className="eyebrow">Läs frågan på skylten · välj 1, X eller 2</p>
+            )}
             <div className="options" style={{ marginTop: "1rem" }}>
               {OPTION_KEYS.map((k) => (
                 <div

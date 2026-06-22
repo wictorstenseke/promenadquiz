@@ -123,7 +123,7 @@ describe("PreviewPage", () => {
     expect(correctOpts.length).toBe(2);
   });
 
-  test("question text is shown even when showQuestionText is false (preview ignores the setting)", async () => {
+  test("hides question text and shows the sign hint when showQuestionText is false", async () => {
     vi.mocked(storage.getWalk).mockResolvedValue(
       makeWalk({
         settings: {
@@ -136,8 +136,11 @@ describe("PreviewPage", () => {
     );
     renderAt();
     const main = await screenMain();
-    // PreviewPage renders q.text regardless of showQuestionText.
-    expect(await main.findByText("Vilket år byggdes bron?")).toBeInTheDocument();
+    // Preview must match the participant view: text hidden, sign hint shown
+    // (one hint per question).
+    const hints = await main.findAllByText("Läs frågan på skylten · välj 1, X eller 2");
+    expect(hints).toHaveLength(2);
+    expect(main.queryByText("Vilket år byggdes bron?")).not.toBeInTheDocument();
   });
 
   test("renders the tiebreaker card when included", async () => {

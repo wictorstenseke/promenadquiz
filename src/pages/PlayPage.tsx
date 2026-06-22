@@ -133,8 +133,9 @@ export default function PlayPage() {
         <p className="lede">Ange ditt namn så syns du på topplistan.</p>
         <div className="card ticket" style={{ marginTop: "1.4rem" }}>
           <div className="field" style={{ marginBottom: "1rem" }}>
-            <label>Ditt namn</label>
+            <label htmlFor="play-name">Ditt namn</label>
             <input
+              id="play-name"
               type="text"
               value={name}
               autoFocus
