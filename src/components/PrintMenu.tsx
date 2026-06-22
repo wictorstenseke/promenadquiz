@@ -5,7 +5,7 @@ import { ChevronIcon, PrinterIcon } from "./Icons";
  *  sheets (portrait) and the answer slips / talonger (landscape). The talonger
  *  path toggles `body.print-talonger` so the print stylesheet swaps which
  *  print-only block is shown; the class is cleared once printing finishes. */
-export function PrintMenu() {
+export function PrintMenu({ printable }: { printable: boolean }) {
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
 
@@ -19,7 +19,8 @@ export function PrintMenu() {
   }, [open]);
 
   useEffect(() => {
-    const clear = () => document.body.classList.remove("print-talonger");
+    const clear = () =>
+      document.body.classList.remove("print-talonger", "print-qr");
     window.addEventListener("afterprint", clear);
     return () => window.removeEventListener("afterprint", clear);
   }, []);
@@ -35,6 +36,12 @@ export function PrintMenu() {
     window.print();
   }
 
+  function printQr() {
+    setOpen(false);
+    document.body.classList.add("print-qr");
+    window.print();
+  }
+
   return (
     <div className="print-menu" ref={wrap}>
       <button
@@ -47,11 +54,18 @@ export function PrintMenu() {
       </button>
       {open && (
         <div className="print-menu-pop" role="menu">
-          <button className="menu-item" role="menuitem" onClick={printQuestions}>
-            Skriv ut frågor
-          </button>
-          <button className="menu-item" role="menuitem" onClick={printTalonger}>
-            Skriv ut talonger
+          {printable && (
+            <button className="menu-item" role="menuitem" onClick={printQuestions}>
+              Skriv ut frågor
+            </button>
+          )}
+          {printable && (
+            <button className="menu-item" role="menuitem" onClick={printTalonger}>
+              Skriv ut talonger
+            </button>
+          )}
+          <button className="menu-item" role="menuitem" onClick={printQr}>
+            Skriv ut QR-affisch
           </button>
         </div>
       )}
