@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronIcon, PrinterIcon } from "./Icons";
 
-/** Print dropdown: "Skriv ut" ▾ with two outputs — the per-station question
- *  sheets (portrait) and the answer slips / talonger (landscape). The talonger
- *  path toggles `body.print-talonger` so the print stylesheet swaps which
- *  print-only block is shown; the class is cleared once printing finishes. */
+/** Print dropdown: "Skriv ut" ▾ with three outputs — the per-station question
+ *  sheets (portrait), the answer slips / talonger (landscape), and the QR poster
+ *  (portrait). The talonger and QR paths toggle `body.print-talonger` /
+ *  `body.print-qr` so the print stylesheet swaps which print-only block is shown;
+ *  the class is cleared once printing finishes. The question/talonger items show
+ *  only when `printable`; the QR poster is always available. */
 export function PrintMenu({ printable }: { printable: boolean }) {
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
