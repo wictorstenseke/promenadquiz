@@ -39,7 +39,10 @@ export class HybridStorage implements Storage {
 
   constructor(deps: HybridDeps = {}) {
     this.local = deps.local ?? new LocalStorageStorage();
-    this.remote = deps.remote ?? (db ? new FirestoreStorage(db) : null);
+    // Honour an explicit `remote: null` (force offline). Only fall back to the
+    // default Firestore backend when `remote` was omitted entirely — `??` would
+    // wrongly treat `null` and `undefined` the same and re-enable the cloud.
+    this.remote = "remote" in deps ? (deps.remote ?? null) : db ? new FirestoreStorage(db) : null;
     this.getUid = deps.getUid ?? (() => null);
   }
 
