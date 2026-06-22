@@ -141,14 +141,10 @@ src/
 - **Spark plan / cost.** Keep Firestore reads cheap and never hit prod in tests —
   integration tests use the **emulator** with project `demo-test`.
 - **`storage/index.ts` is the single backend swap point** (deep-module design).
-- **Known quirks found while testing (NOT yet fixed):**
-  1. `HybridStorage.ts` constructor: `deps.remote ?? (db ? new FirestoreStorage(db) : null)`
-     — `??` collapses an explicit `remote: null`, so passing `null` does **not**
-     disable the cloud layer when Firebase is configured. Tests mock `../firebase`
-     (`db: null`) to exercise the offline branches.
-  2. PlayPage's `Ditt namn` `<label>` has no `htmlFor`/id association (a11y).
-  3. PreviewPage ignores `settings.showQuestionText` — it always renders the
-     question text, unlike PlayPage.
+- **`HybridStorage` accepts `remote: null` to force offline.** The constructor
+  distinguishes an omitted `remote` (→ default Firestore backend) from an
+  explicit `null` (→ no cloud). Don't reintroduce `??` here — it would conflate
+  the two.
 
 ## Definition of Done (any change)
 
