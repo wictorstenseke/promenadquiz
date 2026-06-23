@@ -8,6 +8,8 @@ dist-ssr
 .env
 .firebase
 firebase-debug.log
+firestore-debug.log
+*-debug.log
 .DS_Store
 .vscode/*
 !.vscode/extensions.json
